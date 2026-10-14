@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# podman/start.sh [--shell] [FILE…] — start the kide container (image `kide`,
-# podman/Containerfile.kide) on your ~/workspace.
+# podman/start.sh [FILE…] — start the kide container (image `kide`,
+# podman/Containerfile.kide) on your ~/workspace: fish, from which `kide`
+# opens the IDE. With FILE arguments kide opens them right away (still from
+# fish, with its hooks' environment); quitting it ends the container.
 #
 # The host's ~/workspace (created if missing) is mounted on the container's
-# WORKDIR /workspace; FILE arguments are relative to it. --shell starts fish
-# instead of kide. Run as your normal user (rootless podman, not sudo): your
+# WORKDIR /workspace; FILE arguments are relative to it. Run as your normal user (rootless podman, not sudo): your
 # host user is mapped to the image's user (KIDE_UID/KIDE_GID from
 # podman/base.conf next to this script, default 1001), so files written in
 # ~/workspace stay yours. kide's data and state are kept in the volume
@@ -29,11 +30,8 @@ fi
 [ -n "${SSH_AUTH_SOCK:-}" ] || exec ssh-agent "$0" "$@"
 ssh-add "$HOME/.ssh/gitlab"
 
-entrypoint=()
-if [ "${1:-}" = --shell ]; then
-    entrypoint=(--entrypoint fish)
-    shift
-fi
+cmd=()
+[ $# -eq 0 ] || cmd=(fish -c 'kide $argv' "$@")
 
 mkdir -p "$HOME/workspace"
 exec podman run --rm -it --http-proxy=false -e TERM -e SSH_CONNECTION \
@@ -44,4 +42,4 @@ exec podman run --rm -it --http-proxy=false -e TERM -e SSH_CONNECTION \
     -v "$HOME/.gitconfig:/run/gitconfig:ro" -e GIT_CONFIG_GLOBAL=/run/gitconfig \
     -v "$HOME/workspace:/workspace:Z" \
     -v kide-data:/var/lib/kide \
-    "${entrypoint[@]}" kide "$@"
+    kide "${cmd[@]}"

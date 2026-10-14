@@ -46,11 +46,12 @@ Build ibn-dev first, in the ibn-dev repo (see its README), then kide on top:
     podman build --build-arg-file podman/base.conf --build-arg BASE=localhost/ibn-dev -t kide -f podman/Containerfile.kide .
 
 kide then has everything ibn-dev has: run `build-dist.sh` once in the
-container to build the C/C++ libraries into `/workspace/ibn-dist`. kide's
-fish config sources ibn-dev's `ibn-dist-env.fish` from `IBN_DIST_PREFIX`
-once it exists (`CMAKE_PREFIX_PATH`, `CPLUS_INCLUDE_PATH`, `LIBRARY_PATH`,
-`ACE_ROOT`/`TAO_ROOT`/`DDS_ROOT`, `GDAL_DATA`, …); bash
-(`--entrypoint bash`) gets ibn-dev's `~/.bashrc` lines. A change to ibn-dev
+container to build the C/C++ libraries into `/workspace/ibn-dist`. kide knows
+nothing of ibn-dev: both images ship their shell config as hooks
+([Shell hooks](#shell-hooks-workspacecontainer)), ibn-dev `10-ibn-dev.*`
+(`~/.local/bin`, its `ibn-dist-env` once `build-dist.sh` has run), kide
+`20-kide.*`; on top of each other both are placed and sourced, in fish as in
+bash. A change to ibn-dev
 rebuilds kide on top of it too (the whole IDE compile, ~40 min).
 
 Keep `KIDE_USER`/`KIDE_UID`/`KIDE_GID` in `podman/base.conf` the same as in
@@ -98,36 +99,36 @@ Edit your `~/workspace` (create it once on the host: `mkdir -p ~/workspace`).
 
 `podman/start.sh` does exactly this (it creates `~/workspace` if missing,
 takes the uid/gid from `podman/base.conf` and passes on `TERM` and
-`SSH_CONNECTION`); `--shell` starts fish instead of kide. For git over SSH it
+`SSH_CONNECTION`). It starts fish; `kide` opens the IDE from there, so
+nvim and what it runs (builds, tests, the debugger) get the shell hooks'
+environment. With file arguments kide opens them right away (via fish) and
+quitting it ends the container. For git over SSH it
 loads your key `~/.ssh/gitlab` into an ssh-agent for the session (asking for
 its passphrase, if any) and passes the agent in (with
 `--security-opt label=disable`, as SELinux blocks the agent socket otherwise),
 plus `~/.ssh/known_hosts` and `~/.gitconfig` read-only; all three files must
 exist:
 
-    podman/start.sh                       # kide in ~/workspace
-    podman/start.sh myproject/src/main.py # a file, relative to ~/workspace
-    podman/start.sh --shell               # fish
+    podman/start.sh                       # fish in ~/workspace; then: kide
+    podman/start.sh myproject/src/main.py # kide on a file, relative to ~/workspace
 
 By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
 
     podman run --rm -it --http-proxy=false --userns=keep-id:uid=1001,gid=1001 -v "$HOME/workspace:/workspace:Z" -v kide-data:/var/lib/kide kide
-    podman run --rm -it --http-proxy=false --userns=keep-id:uid=1001,gid=1001 -v "$HOME/workspace:/workspace:Z" -v kide-data:/var/lib/kide kide myproject/src/main.py
+    podman run --rm -it --http-proxy=false --userns=keep-id:uid=1001,gid=1001 -v "$HOME/workspace:/workspace:Z" -v kide-data:/var/lib/kide kide fish -c 'kide $argv' myproject/src/main.py
 
 - `--http-proxy=false`: podman would otherwise copy the host's proxy
   variables (`http_proxy`, `https_proxy`, `HTTP_PROXY`, `HTTPS_PROXY`,
   `ftp_proxy`, `no_proxy`, …) into the container; kide runs without them. The
   build (`podman build`) still gets them, so dnf and pip can use the proxy.
-  As a fallback, the image's fish config unsets them too (a `podman run`
-  without the flag still has them in kide itself, which is not started from fish).
+  As a fallback, the shells' hook loader unsets them too.
 - `-v "$HOME/workspace:/workspace:Z"`: your `~/workspace` on the host (create it once: `mkdir -p ~/workspace`),
   mounted on `/workspace`, the container's working directory: kide and fish
   start there, whatever directory you start from. `:Z` relabels it for SELinux
   (needed on RHEL). A file argument is relative to it (e.g.
-  `kide myproject/src/main.py`). fish sources every `*.fish` in
-  `~/workspace/.container/fish/` (in the container
-  `/workspace/.container/fish/`) last, in name order: your own fish config
-  (aliases, PATH, …), kept on the host. Likewise tmux reads
+  `kide myproject/src/main.py`). The shells' hooks are in
+  `~/workspace/.container/` ([Shell hooks](#shell-hooks-workspacecontainer)).
+  Likewise tmux reads
   `~/workspace/.container/tmux.conf` last, if it exists, after the image's
   `/etc/tmux.conf` (mouse on).
 - `-v kide-data:/var/lib/kide`: kide's data and state (undo history, shada,
@@ -148,9 +149,34 @@ By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
   `/etc/gitconfig`), so it never stops with "dubious ownership", whichever
   uid the project appears as inside.
 
-A shell in the container (lazygit, yazi, cmake, gdb, … are all on `PATH`):
+The container starts fish (lazygit, yazi, cmake, gdb, … are all on `PATH`);
+`kide` opens the IDE. bash instead: `… kide bash`.
 
-    podman run --rm -it --http-proxy=false --userns=keep-id:uid=1001,gid=1001 -v "$HOME/workspace:/workspace:Z" -v kide-data:/var/lib/kide --entrypoint fish kide
+## Shell hooks: /workspace/.container
+
+The shells' config is not baked into `~/.bashrc` and `config.fish`; those
+only source a loader (`/usr/local/share/container-shell/load.{sh,fish}`,
+from `container-shell/`). At every shell start the loader places the hooks
+every image layer ships (`/usr/local/share/container-shell/{bash,fish}/`) in
+the mounted workspace, then sources every file there in name order:
+
+| On the host | Sourced by | From |
+|---|---|---|
+| `~/workspace/.container/bash/10-ibn-dev.sh`, `fish/10-ibn-dev.fish` | bash, fish | the ibn-dev image (when kide is built on it) |
+| `~/workspace/.container/bash/20-kide.sh`, `fish/20-kide.fish` | bash, fish | this image: `/opt/kide/bashrc`, the bundled fish config |
+| `~/workspace/.container/{bash,fish}/<yours>` | bash, fish | you, e.g. `50-my.fish` |
+
+- The image's hooks are the image's: a changed one is overwritten at the next
+  shell start. Your own config goes into files of your own.
+- Each image only ships its own hooks and knows nothing of the others; the
+  number orders them (base images low). `container-shell/{sync.sh,load.*}`
+  are the same files in kide and ibn-dev: keep them in step.
+- The hooks check for what they need (`/opt/kide`, `IBN_DIST_PREFIX`), so a
+  workspace shared with an ibn-dev container without kide is fine.
+- `/workspace` not writable: the hooks are sourced straight from the image.
+  A root shell places them too, owned by the workspace's owner.
+- The loader also unsets the host's proxy variables (fallback for
+  `--http-proxy=false`).
 
 ## Shell: fish
 
@@ -161,12 +187,11 @@ from lazygit or yazi are fish too. It is built from source by `build-ide.sh`, li
 (a normal install gets `PREFIX/bin/fish` too; its login shell stays bash).
 
 The IDE's shell helpers live in the repo's `fish/` directory, installed to
-`/opt/kide/share/kreatos-ide/fish` and sourced from `~/.config/fish/config.fish`
-(of `KIDE_USER` and root):
+`/opt/kide/share/kreatos-ide/fish` and sourced by the hook `20-kide.fish`
+([Shell hooks](#shell-hooks-workspacecontainer)):
 
-- `config.fish`: kide's `bin` first on `PATH`, `YAZI_CONFIG_HOME`, and, on
-  top of ibn-dev, its `ibn-dist-env.fish` from `IBN_DIST_PREFIX` once
-  `build-dist.sh` has installed it
+- `config.fish`: kide's `bin` first on `PATH`, `YAZI_CONFIG_HOME`, the
+  functions
 - `aliases.fish`: aliases for interactive shells
 
 | Alias | Runs |
@@ -189,7 +214,7 @@ New helpers go into `fish/` (aliases into `aliases.fish`, functions into
 `functions/NAME.fish`) and the tables above;
 the image has to be built again to pick them up. fish's history is in
 `/var/lib/kide/share/fish` (`XDG_DATA_HOME`), so it survives the container with the `kide-data`
-volume. `--entrypoint bash` still works as a fallback.
+volume. bash still works as a fallback (`podman run … kide bash`).
 
 fish is built without its man pages (they need Sphinx), so builtins' `--help`
 has no page to show; `help` points to <https://fishshell.com/docs/current/>.

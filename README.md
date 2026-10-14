@@ -157,30 +157,36 @@ Run it on your `~/workspace` (rootless podman, as your normal user — not
 
 `podman/start.sh` does exactly this (it creates `~/workspace` if missing,
 takes the uid/gid from `podman/base.conf` and passes on `TERM` and
-`SSH_CONNECTION`); `--shell` starts fish instead of kide. For git over SSH it
+`SSH_CONNECTION`). It starts fish; `kide` opens the IDE from there, so
+nvim and what it runs (builds, tests, the debugger) get the shell hooks'
+environment. With file arguments kide opens them right away (via fish) and
+quitting it ends the container. For git over SSH it
 loads your key `~/.ssh/gitlab` into an ssh-agent for the session (asking for
 its passphrase, if any) and passes the agent in (with
 `--security-opt label=disable`, as SELinux blocks the agent socket otherwise),
 plus `~/.ssh/known_hosts` and `~/.gitconfig` read-only; all three files must
 exist:
 
-    podman/start.sh                       # kide in ~/workspace
-    podman/start.sh myproject/src/main.py # a file, relative to ~/workspace
-    podman/start.sh --shell               # fish
+    podman/start.sh                       # fish in ~/workspace; then: kide
+    podman/start.sh myproject/src/main.py # kide on a file, relative to ~/workspace
 
 By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
 
     podman run --rm -it --http-proxy=false --userns=keep-id:uid=1001,gid=1001 -v "$HOME/workspace:/workspace:Z" -v kide-data:/var/lib/kide kide
-    podman run --rm -it --http-proxy=false --userns=keep-id:uid=1001,gid=1001 -v "$HOME/workspace:/workspace:Z" -v kide-data:/var/lib/kide kide myproject/src/main.py
+    podman run --rm -it --http-proxy=false --userns=keep-id:uid=1001,gid=1001 -v "$HOME/workspace:/workspace:Z" -v kide-data:/var/lib/kide kide fish -c 'kide $argv' myproject/src/main.py
 
 - `-v "$HOME/workspace:/workspace:Z"`: your `~/workspace` on the host (create it once: `mkdir -p ~/workspace`),
   mounted on `/workspace`, the container's working directory: kide and fish
   start there, whatever directory you start from. `:Z` relabels it for SELinux
   (needed on RHEL). A file argument is relative to it (e.g.
-  `kide myproject/src/main.py`). fish sources every `*.fish` in
-  `~/workspace/.container/fish/` (in the container
-  `/workspace/.container/fish/`) last, in name order: your own fish config
-  (aliases, PATH, …), kept on the host. Likewise tmux reads
+  `kide myproject/src/main.py`). `~/workspace/.container/` holds the shells' hooks (in the container
+  `/workspace/.container/`): at every shell start, bash and fish place the
+  image's own hooks in `bash/` and `fish/` there (kide: `20-kide.sh`/`.fish`;
+  on top of ibn-dev also its `10-ibn-dev.*`), then source every `*.sh`
+  (bash) or `*.fish` (fish) there in name order. Your own config (aliases,
+  PATH, …) goes into files of your own next to them, e.g. `50-my.fish`, kept
+  on the host; the image's hooks are overwritten when the image has a newer
+  version. Likewise tmux reads
   `~/workspace/.container/tmux.conf` last, if it exists, after the image's
   `/etc/tmux.conf` (mouse on).
 - `-v kide-data:/var/lib/kide`: kide's data and state survive the container;
@@ -188,9 +194,9 @@ By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
 - `--userns=keep-id:uid=1001,gid=1001`: the image runs as the user `default`
   (uid/gid 1001, `podman/base.conf`), not root; this maps you on the host to
   it, so it can write the project and the files stay yours (podman 4.3+).
-- A shell inside instead of kide (lazygit, yazi, cmake, gdb on `PATH`): add
-  `--entrypoint fish` before `kide` (fish is the container's shell, with the
-  IDE's aliases, e.g. `lg` = lazygit; see `podman/README.md`).
+- The container starts fish (lazygit, yazi, cmake, gdb on `PATH`, the
+  IDE's aliases, e.g. `lg` = lazygit; see `podman/README.md`); `kide` opens
+  the IDE.
 
 As an alias in `~/.bashrc`:
 
@@ -226,13 +232,13 @@ Saved Sessions → Save*):
 colours (22 colours from the kreatos theme's `ghostty.conf`), so the terminal
 background and colours match kreatos. It also sets JetBrainsMono Nerd Font Mono
 10 pt, terminal type `xterm-256color`, 24-bit colour, and as *Connection → SSH →
-Remote command* it starts the kide container with fish as its shell:
+Remote command* it starts the kide container (fish):
 
-    podman run --rm -it --http-proxy=false -e TERM -e SSH_CONNECTION --userns=keep-id:uid=1001,gid=1001 -v "$HOME/workspace:/workspace:Z" -v kide-data:/var/lib/kide --entrypoint fish kide
+    podman run --rm -it --http-proxy=false -e TERM -e SSH_CONNECTION --userns=keep-id:uid=1001,gid=1001 -v "$HOME/workspace:/workspace:Z" -v kide-data:/var/lib/kide kide
 
 The container mounts your `~/workspace` on the RHEL box (create it once:
 `mkdir -p ~/workspace`) and starts fish there; `cd` to the project, `kide`
-opens it. The `*.fish` files in `~/workspace/.container/fish/` are sourced as your own fish config. Leaving
+opens it. Your own fish config: `*.fish` files of your own in `~/workspace/.container/fish/` ([hooks](#in-a-podman-container)). Leaving
 fish (`exit`) ends the container and the PuTTY session. Needs the `kide` image
 on the RHEL box ([In a podman container](#in-a-podman-container)). For a plain
 login shell instead (e.g. a normal install), clear the remote command in PuTTY
@@ -266,7 +272,7 @@ that session; host, port and other settings stay. Not tested on Windows yet.
    running across logouts and disconnects, use
    [the persistent setup below](#persistent-kide-survives-ssh-logout) instead
    of step 3.
-3. `cd` to the project on the RHEL box and start kide:
+3. Start the kide container (fish in `~/workspace`; `cd` to the project, `kide` opens it):
 
        podman run --rm -it --http-proxy=false -e TERM -e SSH_CONNECTION --userns=keep-id:uid=1001,gid=1001 -v "$HOME/workspace:/workspace:Z" -v kide-data:/var/lib/kide kide
 
@@ -358,8 +364,9 @@ user, without sudo.
        [Container]
        Image=localhost/kide:latest
        ContainerName=kide
-       # the image's entrypoint is kide; this makes it a server, no UI
-       Exec=--headless --listen /tmp/kide.sock
+       # kide as a server, no UI; started from fish for the shell hooks'
+       # environment (the image's command is fish)
+       Exec=fish -c "kide --headless --listen /tmp/kide.sock"
        Volume=%h/workspace:/workspace:Z
        Volume=kide-data:/var/lib/kide
        UserNS=keep-id:uid=1001,gid=1001
@@ -443,8 +450,9 @@ OpenDDS and GDAL with GTiff built from source) are not part of kide: they are
 the **ibn-dev** build environment, a separate repo and podman image. Build
 kide on top of it (`--build-arg BASE=localhost/ibn-dev`, see
 [podman/README.md](podman/README.md#on-top-of-ibn-dev)) for the IDE and the
-build environment in one container; kide's fish config picks up ibn-dev's
-library environment (`ibn-dist-env.fish`) by itself.
+build environment in one container. kide knows nothing of ibn-dev: ibn-dev's
+own shell hooks (`10-ibn-dev.sh`/`.fish` in `/workspace/.container/`) set its
+library environment, in fish as in bash.
 
 ### Terminal tools
 
