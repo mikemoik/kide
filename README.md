@@ -476,6 +476,7 @@ gets one setting, see below):
   TypeScript/JSX/TSX and PHP (their Sublime syntaxes are too new for
   syntect, as in upstream yazi).
 - `fd` — fast `find`; the snacks file pickers use it
+- `rg` — ripgrep; `:grep` (`grepprg`) and the snacks grep pickers use it
 - `fzf` — fuzzy finder
 
 ## Moving the repo to an on-prem GitLab
@@ -603,7 +604,7 @@ off TLS checks instead.
 | `vendor/neovim-deps` | its bundled deps as source trees (libuv, LuaJIT, luv, lpeg, unibilium, utf8proc, tree-sitter, bundled parsers), pinned + sha256-checked by Neovim's `cmake.deps/deps.txt` |
 | `vendor/plugins` | the plugins, plain source at pinned commits (`manifest/plugins.tsv`) |
 | `vendor/grammars` | treesitter grammar repos (`grammar.js` + generated `src/parser.c`) |
-| `vendor/tools` | LSP servers, formatters, debugger (`manifest/tools.tsv`): ruff + ty, neocmakelsp, shfmt, debugpy, fd, fzf, lazygit, yazi, yazi-prebuilt (the syntax repos for yazi's previews); Go tools carry their modules in their own `vendor/` |
+| `vendor/tools` | LSP servers, formatters, debugger (`manifest/tools.tsv`): ruff + ty, neocmakelsp, shfmt, debugpy, fd, ripgrep, fzf, lazygit, yazi, yazi-prebuilt (the syntax repos for yazi's previews); Go tools carry their modules in their own `vendor/` |
 | `vendor/crates` | the Rust crates of each cargo tool (`cargo vendor --locked`), plus the cargo source config |
 | `config` | the nvim config (kreatos `home/nvim`, adapted, see below) |
 | `yazi` | the yazi config bundled with kide (text files open in kide) |
@@ -665,7 +666,7 @@ even in CRB), so every crate the build needs is in `vendor/crates` as source.
 | 3 | ruff + ty 0.15.11 (newest tag that builds with Rust 1.92) | done, passes in UBI9 offline |
 | 4 | shfmt 3.13.1, debugpy 1.8.21 (last release for Python 3.9) | done, passes in UBI9 offline |
 | C++ | parsers, neocmakelsp 0.11.0 (newest that builds with Rust 1.92), clangd_extensions, cmake-tools, neotest-gtest, neogen; config for RHEL's clangd/clang-format/gdb/lldb-dap | task 123 |
-| tools | fd 10.5.0, fzf 0.74.4, lazygit 0.65.1, yazi 26.1.22 (newest that builds with Rust 1.92; later ones need 1.95) | in progress |
+| tools | fd 10.5.0, ripgrep 15.2.0, fzf 0.74.4, lazygit 0.65.1, yazi 26.1.22 (newest that builds with Rust 1.92; later ones need 1.95) | in progress |
 | libs | moved to the ibn-dev repo (build environment) | task 126 |
 
 ## Updating the pins (on a connected machine)
@@ -877,6 +878,7 @@ license. Generated from `VERSIONS` by `scripts/gen-inventory.py` (run by
 | tool/fzf | <https://github.com/junegunn/fzf> | `v0.74.4` | MIT |
 | tool/lazygit | <https://github.com/jesseduffield/lazygit> | `v0.65.1` | MIT |
 | tool/neocmakelsp | <https://github.com/neocmakelsp/neocmakelsp> | `v0.11.0` | MIT |
+| tool/ripgrep | <https://github.com/BurntSushi/ripgrep> | `15.2.0` | MIT OR Unlicense |
 | tool/ruff | <https://github.com/astral-sh/ruff> | `0.15.11` | MIT |
 | tool/shfmt | <https://github.com/mvdan/sh> | `v3.13.1` | BSD-3-Clause |
 | tool/tmux | <https://github.com/tmux/tmux> | `3.7c` | ISC |
@@ -1433,6 +1435,62 @@ license. Generated from `VERSIONS` by `scripts/gen-inventory.py` (run by
 | zerovec-0.11.6 | Unicode-3.0 | yes |
 | zerovec-derive-0.11.3 | Unicode-3.0 | yes |
 | zmij-1.0.21 | MIT | yes |
+
+</details>
+
+<details><summary>Rust crates of ripgrep: 38 built, 11 manifest-only stubs (pinned by its Cargo.lock)</summary>
+
+| Crate | License | Built |
+|---|---|---|
+| aho-corasick-1.1.4 | Unlicense OR MIT | yes |
+| anyhow-1.0.103 | MIT OR Apache-2.0 | yes |
+| arbitrary-1.4.2 | MIT OR Apache-2.0 | yes |
+| bstr-1.13.0 | MIT OR Apache-2.0 | yes |
+| cc-1.2.67 | MIT OR Apache-2.0 | yes |
+| cfg-if-1.0.4 | MIT OR Apache-2.0 | yes |
+| crossbeam-channel-0.5.16 | MIT OR Apache-2.0 | no (stub) |
+| crossbeam-deque-0.8.7 | MIT OR Apache-2.0 | yes |
+| crossbeam-epoch-0.9.20 | MIT OR Apache-2.0 | yes |
+| crossbeam-utils-0.8.22 | MIT OR Apache-2.0 | yes |
+| derive_arbitrary-1.4.2 | MIT OR Apache-2.0 | yes |
+| encoding_rs-0.8.35 | (Apache-2.0 OR MIT) AND BSD-3-Clause | yes |
+| encoding_rs_io-0.1.7 | MIT OR Apache-2.0 | yes |
+| find-msvc-tools-0.1.9 | MIT OR Apache-2.0 | yes |
+| getrandom-0.4.3 | MIT OR Apache-2.0 | no (stub) |
+| glob-0.3.3 | MIT OR Apache-2.0 | no (stub) |
+| itoa-1.0.18 | MIT OR Apache-2.0 | yes |
+| jobserver-0.1.35 | MIT OR Apache-2.0 | yes |
+| lexopt-0.3.2 | MIT | yes |
+| libc-0.2.186 | MIT OR Apache-2.0 | yes |
+| log-0.4.33 | MIT OR Apache-2.0 | yes |
+| memchr-2.8.3 | Unlicense OR MIT | yes |
+| memmap2-0.9.11 | MIT OR Apache-2.0 | yes |
+| pcre2-0.2.11 | Unlicense OR MIT | yes |
+| pcre2-sys-0.2.10 | Unlicense OR MIT | yes |
+| pkg-config-0.3.33 | MIT OR Apache-2.0 | yes |
+| proc-macro2-1.0.106 | MIT OR Apache-2.0 | yes |
+| quote-1.0.46 | MIT OR Apache-2.0 | yes |
+| r-efi-6.0.0 | MIT OR Apache-2.0 OR LGPL-2.1-or-later | no (stub) |
+| regex-1.13.0 | MIT OR Apache-2.0 | no (stub) |
+| regex-automata-0.4.15 | MIT OR Apache-2.0 | yes |
+| regex-syntax-0.8.11 | MIT OR Apache-2.0 | yes |
+| same-file-1.0.6 | Unlicense OR MIT | yes |
+| serde-1.0.228 | MIT OR Apache-2.0 | yes |
+| serde_core-1.0.228 | MIT OR Apache-2.0 | yes |
+| serde_derive-1.0.228 | MIT OR Apache-2.0 | no (stub) |
+| serde_json-1.0.150 | MIT OR Apache-2.0 | yes |
+| shlex-2.0.1 | MIT OR Apache-2.0 | yes |
+| syn-2.0.119 | MIT OR Apache-2.0 | yes |
+| termcolor-1.4.1 | Unlicense OR MIT | yes |
+| textwrap-0.16.2 | MIT | yes |
+| tikv-jemallocator-0.7.0 | MIT OR Apache-2.0 | no (stub) |
+| tikv-jemalloc-sys-0.7.1+5.3.1-0-g81034ce1f1373e37dc865038e1bc8eeecf559ce8 | MIT OR Apache-2.0 | no (stub) |
+| unicode-ident-1.0.24 | (MIT OR Apache-2.0) AND Unicode-3.0 | yes |
+| walkdir-2.5.0 | Unlicense OR MIT | yes |
+| winapi-util-0.1.11 | Unlicense OR MIT | no (stub) |
+| windows-link-0.2.1 | MIT OR Apache-2.0 | no (stub) |
+| windows-sys-0.61.2 | MIT OR Apache-2.0 | no (stub) |
+| zmij-1.0.23 | MIT | yes |
 
 </details>
 

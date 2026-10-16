@@ -19,6 +19,7 @@
 #   PREFIX/bin/neocmakelsp            CMake LSP
 #   PREFIX/bin/shfmt                  shell formatter
 #   PREFIX/bin/{fd,fzf,lazygit}       file finder, fuzzy finder, git TUI
+#   PREFIX/bin/rg                     ripgrep (grepprg, snacks grep pickers)
 #   PREFIX/bin/{yazi,ya}              file manager + its CLI
 #   PREFIX/bin/fish                   fish shell (the container's shell; its
 #                                     functions and completions are built in),
@@ -200,6 +201,11 @@ go_build shfmt "$PREFIX/bin/shfmt" ./cmd/shfmt
 log "fd"
 cargo_build fd -p fd-find
 install -m755 "$TOOLS/fd/target/release/fd" "$PREFIX/bin/"
+
+log "ripgrep"
+# default features: no pcre2 (would need RHEL's pcre2-devel), Rust regex only
+cargo_build ripgrep -p ripgrep
+install -m755 "$TOOLS/ripgrep/target/release/rg" "$PREFIX/bin/"
 
 log "fzf"
 go_build fzf "$PREFIX/bin/fzf" . -ldflags "-X main.version=$(awk '$1 == "fzf" { print substr($4, 2) }' "$ROOT/manifest/tools.tsv") -X main.revision=kide"

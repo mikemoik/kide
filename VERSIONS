@@ -526,6 +526,55 @@ crate/neocmakelsp/zerotrie-0.2.4 https://crates.io                              
 crate/neocmakelsp/zerovec-0.11.6 https://crates.io                                            Cargo.lock
 crate/neocmakelsp/zerovec-derive-0.11.3 https://crates.io                                            Cargo.lock
 crate/neocmakelsp/zmij-1.0.21 https://crates.io                                            Cargo.lock
+crate/ripgrep/aho-corasick-1.1.4 https://crates.io                                            Cargo.lock
+crate/ripgrep/anyhow-1.0.103 https://crates.io                                            Cargo.lock
+crate/ripgrep/arbitrary-1.4.2 https://crates.io                                            Cargo.lock
+crate/ripgrep/bstr-1.13.0    https://crates.io                                            Cargo.lock
+crate/ripgrep/cc-1.2.67      https://crates.io                                            Cargo.lock
+crate/ripgrep/cfg-if-1.0.4   https://crates.io                                            Cargo.lock
+crate/ripgrep/crossbeam-channel-0.5.16 https://crates.io                                            Cargo.lock (stub: not built on Linux)
+crate/ripgrep/crossbeam-deque-0.8.7 https://crates.io                                            Cargo.lock
+crate/ripgrep/crossbeam-epoch-0.9.20 https://crates.io                                            Cargo.lock
+crate/ripgrep/crossbeam-utils-0.8.22 https://crates.io                                            Cargo.lock
+crate/ripgrep/derive_arbitrary-1.4.2 https://crates.io                                            Cargo.lock
+crate/ripgrep/encoding_rs-0.8.35 https://crates.io                                            Cargo.lock
+crate/ripgrep/encoding_rs_io-0.1.7 https://crates.io                                            Cargo.lock
+crate/ripgrep/find-msvc-tools-0.1.9 https://crates.io                                            Cargo.lock
+crate/ripgrep/getrandom-0.4.3 https://crates.io                                            Cargo.lock (stub: not built on Linux)
+crate/ripgrep/glob-0.3.3     https://crates.io                                            Cargo.lock (stub: not built on Linux)
+crate/ripgrep/itoa-1.0.18    https://crates.io                                            Cargo.lock
+crate/ripgrep/jobserver-0.1.35 https://crates.io                                            Cargo.lock
+crate/ripgrep/lexopt-0.3.2   https://crates.io                                            Cargo.lock
+crate/ripgrep/libc-0.2.186   https://crates.io                                            Cargo.lock
+crate/ripgrep/log-0.4.33     https://crates.io                                            Cargo.lock
+crate/ripgrep/memchr-2.8.3   https://crates.io                                            Cargo.lock
+crate/ripgrep/memmap2-0.9.11 https://crates.io                                            Cargo.lock
+crate/ripgrep/pcre2-0.2.11   https://crates.io                                            Cargo.lock
+crate/ripgrep/pcre2-sys-0.2.10 https://crates.io                                            Cargo.lock
+crate/ripgrep/pkg-config-0.3.33 https://crates.io                                            Cargo.lock
+crate/ripgrep/proc-macro2-1.0.106 https://crates.io                                            Cargo.lock
+crate/ripgrep/quote-1.0.46   https://crates.io                                            Cargo.lock
+crate/ripgrep/r-efi-6.0.0    https://crates.io                                            Cargo.lock (stub: not built on Linux)
+crate/ripgrep/regex-1.13.0   https://crates.io                                            Cargo.lock (stub: not built on Linux)
+crate/ripgrep/regex-automata-0.4.15 https://crates.io                                            Cargo.lock
+crate/ripgrep/regex-syntax-0.8.11 https://crates.io                                            Cargo.lock
+crate/ripgrep/same-file-1.0.6 https://crates.io                                            Cargo.lock
+crate/ripgrep/serde-1.0.228  https://crates.io                                            Cargo.lock
+crate/ripgrep/serde_core-1.0.228 https://crates.io                                            Cargo.lock
+crate/ripgrep/serde_derive-1.0.228 https://crates.io                                            Cargo.lock (stub: not built on Linux)
+crate/ripgrep/serde_json-1.0.150 https://crates.io                                            Cargo.lock
+crate/ripgrep/shlex-2.0.1    https://crates.io                                            Cargo.lock
+crate/ripgrep/syn-2.0.119    https://crates.io                                            Cargo.lock
+crate/ripgrep/termcolor-1.4.1 https://crates.io                                            Cargo.lock
+crate/ripgrep/textwrap-0.16.2 https://crates.io                                            Cargo.lock
+crate/ripgrep/tikv-jemallocator-0.7.0 https://crates.io                                            Cargo.lock (stub: not built on Linux)
+crate/ripgrep/tikv-jemalloc-sys-0.7.1+5.3.1-0-g81034ce1f1373e37dc865038e1bc8eeecf559ce8 https://crates.io                                            Cargo.lock (stub: not built on Linux)
+crate/ripgrep/unicode-ident-1.0.24 https://crates.io                                            Cargo.lock
+crate/ripgrep/walkdir-2.5.0  https://crates.io                                            Cargo.lock
+crate/ripgrep/winapi-util-0.1.11 https://crates.io                                            Cargo.lock (stub: not built on Linux)
+crate/ripgrep/windows-link-0.2.1 https://crates.io                                            Cargo.lock (stub: not built on Linux)
+crate/ripgrep/windows-sys-0.61.2 https://crates.io                                            Cargo.lock (stub: not built on Linux)
+crate/ripgrep/zmij-1.0.23    https://crates.io                                            Cargo.lock
 crate/ruff/adler2-2.0.1      https://crates.io                                            Cargo.lock
 crate/ruff/aho-corasick-1.1.4 https://crates.io                                            Cargo.lock
 crate/ruff/alloca-0.4.0      https://crates.io                                            Cargo.lock (stub: not built on Linux)
@@ -1789,6 +1838,7 @@ tool/fish                    https://github.com/fish-shell/fish-shell           
 tool/fzf                     https://github.com/junegunn/fzf                              v0.74.4
 tool/lazygit                 https://github.com/jesseduffield/lazygit                     v0.65.1
 tool/neocmakelsp             https://github.com/neocmakelsp/neocmakelsp                   v0.11.0
+tool/ripgrep                 https://github.com/BurntSushi/ripgrep                        15.2.0
 tool/ruff                    https://github.com/astral-sh/ruff                            0.15.11
 tool/shfmt                   https://github.com/mvdan/sh                                  v3.13.1
 tool/tmux                    https://github.com/tmux/tmux                                 3.7c

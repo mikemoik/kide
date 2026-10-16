@@ -224,7 +224,7 @@ local function run()
   for _, row in ipairs(read_tsv(src .. "/manifest/tools.tsv")) do
     versions[row[1]] = row[4]:gsub("^v", "")
   end
-  for _, t in ipairs({ { "fd", "fd" }, { "fzf", "fzf" }, { "lazygit", "lazygit" }, { "yazi", "yazi" }, { "ya", "yazi" } }) do
+  for _, t in ipairs({ { "fd", "fd" }, { "rg", "ripgrep" }, { "fzf", "fzf" }, { "lazygit", "lazygit" }, { "yazi", "yazi" }, { "ya", "yazi" } }) do
     local res = vim.system({ t[1], "--version" }, { text = true }):wait()
     local version = (res.stdout or "") .. (res.stderr or "")
     check(t[1] .. " " .. versions[t[2]], res.code == 0 and version:find(versions[t[2]], 1, true) ~= nil, version)
@@ -233,6 +233,8 @@ local function run()
   check("tmux " .. versions.tmux, tres.code == 0 and (tres.stdout or ""):find(versions.tmux, 1, true) ~= nil, tres.stdout)
   local found = vim.fn.system({ "fd", "--type", "f", "CMakeLists", src .. "/test/proj/customers-cpp" })
   check("fd finds files", vim.v.shell_error == 0 and found:find("app/CMakeLists.txt", 1, true) ~= nil, found)
+  local grepped = vim.fn.system({ "rg", "--files-with-matches", "add_executable", src .. "/test/proj/customers-cpp" })
+  check("rg finds matches", vim.v.shell_error == 0 and grepped:find("CMakeLists.txt", 1, true) ~= nil, grepped)
   local picked = vim.fn.system({ "fzf", "--filter", "cstdb" }, "customer_db.cpp\nreport.cpp\n")
   check("fzf filters", vim.trim(picked) == "customer_db.cpp", picked)
 
