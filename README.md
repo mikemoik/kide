@@ -19,9 +19,10 @@ everything:
 
 1. Installs the RHEL packages that are missing (asks for your sudo
    password): the build toolchain (gcc, make, cmake, python3, rust-toolset,
-   golang, libevent-devel and ncurses-devel for tmux), tar, git-core, and the
+   golang), tar, git-core, tmux, fd-find, ripgrep, and the
    [C/C++ tools](#cc-development) kide uses from RHEL. All from the box's
-   configured dnf repos (install.sh adds no repos).
+   configured dnf repos (install.sh adds no repos); fd-find and ripgrep are
+   from EPEL, so EPEL must be enabled.
 2. Downloads this repo as a tarball into a temp dir (removed afterwards).
 3. Builds and installs kreatos-ide offline into `~/.local/kreatos-ide`
    (`build-ide.sh`, ~5 min).
@@ -92,7 +93,10 @@ from somewhere.
    missing, and stops if `dnf` fails. The full list:
 
        sudo dnf install gcc make cmake python3 rust-toolset golang findutils diffutils tar \
-           git-core gcc-c++ clang-tools-extra gdb lldb file libevent-devel ncurses-devel
+           git-core gcc-c++ clang-tools-extra gdb lldb file tmux fd-find ripgrep
+
+   `fd-find` and `ripgrep` come from EPEL, so the box needs EPEL enabled;
+   everything else is from the RHEL repos.
 
 4. Unpack and install (into `~/.local/kreatos-ide`, ~5 min; an argument picks
    another prefix, e.g. `./install.sh /opt/kide`):
@@ -460,8 +464,6 @@ Also built from source and put on `PATH` with kide (upstream defaults; yazi
 gets one setting, see below):
 
 - `lazygit` — git TUI; inside kide on `<leader>gg` (root dir) / `<leader>gG` (cwd)
-- `tmux` — terminal multiplexer; `tm NAME` (fish) attaches to or creates a
-  session with a top/bottom split
 - `fish` — shell; the podman container's default shell, with the IDE's
   helpers from `fish/` (`config.fish`, `aliases.fish`: `vi` = kide, `lg` = lazygit, `y` = yazi (`Q` quits into its directory), `ll` = ls -alh, `ff` = fzf → kide, `ffex` = fzf over exported variables → clipboard; function `tm NAME` = tmux session). A
   normal install builds it too but keeps bash as the login shell.
@@ -475,9 +477,15 @@ gets one setting, see below):
   Dockerfile; other text files preview as plain text, and so do HTML,
   TypeScript/JSX/TSX and PHP (their Sublime syntaxes are too new for
   syntect, as in upstream yazi).
-- `fd` — fast `find`; the snacks file pickers use it
-- `rg` — ripgrep; `:grep` (`grepprg`) and the snacks grep pickers use it
 - `fzf` — fuzzy finder
+
+From packages, not built by kide (`install.sh` / the image install them):
+
+- `tmux` — RHEL's; terminal multiplexer, `tm NAME` (fish) attaches to or
+  creates a session with a top/bottom split
+- `fd` — `fd-find` from EPEL; fast `find`, the snacks file pickers use it
+- `rg` — `ripgrep` from EPEL; `:grep` (`grepprg`) and the snacks grep pickers
+  use it
 
 ## Moving the repo to an on-prem GitLab
 
@@ -604,7 +612,7 @@ off TLS checks instead.
 | `vendor/neovim-deps` | its bundled deps as source trees (libuv, LuaJIT, luv, lpeg, unibilium, utf8proc, tree-sitter, bundled parsers), pinned + sha256-checked by Neovim's `cmake.deps/deps.txt` |
 | `vendor/plugins` | the plugins, plain source at pinned commits (`manifest/plugins.tsv`) |
 | `vendor/grammars` | treesitter grammar repos (`grammar.js` + generated `src/parser.c`) |
-| `vendor/tools` | LSP servers, formatters, debugger (`manifest/tools.tsv`): ruff + ty, neocmakelsp, shfmt, debugpy, fd, ripgrep, fzf, lazygit, yazi, yazi-prebuilt (the syntax repos for yazi's previews); Go tools carry their modules in their own `vendor/` |
+| `vendor/tools` | LSP servers, formatters, debugger (`manifest/tools.tsv`): ruff + ty, neocmakelsp, shfmt, debugpy, fzf, lazygit, yazi, yazi-prebuilt (the syntax repos for yazi's previews); Go tools carry their modules in their own `vendor/` |
 | `vendor/crates` | the Rust crates of each cargo tool (`cargo vendor --locked`), plus the cargo source config |
 | `config` | the nvim config (kreatos `home/nvim`, adapted, see below) |
 | `yazi` | the yazi config bundled with kide (text files open in kide) |
@@ -666,7 +674,7 @@ even in CRB), so every crate the build needs is in `vendor/crates` as source.
 | 3 | ruff + ty 0.15.11 (newest tag that builds with Rust 1.92) | done, passes in UBI9 offline |
 | 4 | shfmt 3.13.1, debugpy 1.8.21 (last release for Python 3.9) | done, passes in UBI9 offline |
 | C++ | parsers, neocmakelsp 0.11.0 (newest that builds with Rust 1.92), clangd_extensions, cmake-tools, neotest-gtest, neogen; config for RHEL's clangd/clang-format/gdb/lldb-dap | task 123 |
-| tools | fd 10.5.0, ripgrep 15.2.0, fzf 0.74.4, lazygit 0.65.1, yazi 26.1.22 (newest that builds with Rust 1.92; later ones need 1.95) | in progress |
+| tools | fzf 0.74.4, lazygit 0.65.1, yazi 26.1.22 (newest that builds with Rust 1.92; later ones need 1.95) | in progress |
 | libs | moved to the ibn-dev repo (build environment) | task 126 |
 
 ## Updating the pins (on a connected machine)
@@ -873,157 +881,18 @@ license. Generated from `VERSIONS` by `scripts/gen-inventory.py` (run by
 | plugin/trouble.nvim | <https://github.com/folke/trouble.nvim> | `bd67efe408d4` | Apache-2.0 |
 | plugin/which-key.nvim | <https://github.com/folke/which-key.nvim> | `3aab2147e748` | Apache-2.0 |
 | tool/debugpy | <https://pypi.org/project/debugpy> | `1.8.21` | MIT |
-| tool/fd | <https://github.com/sharkdp/fd> | `v10.5.0` | Apache-2.0 OR MIT |
 | tool/fish | <https://github.com/fish-shell/fish-shell> | `4.9.3` | GPL-2.0 |
 | tool/fzf | <https://github.com/junegunn/fzf> | `v0.74.4` | MIT |
 | tool/lazygit | <https://github.com/jesseduffield/lazygit> | `v0.65.1` | MIT |
 | tool/neocmakelsp | <https://github.com/neocmakelsp/neocmakelsp> | `v0.11.0` | MIT |
-| tool/ripgrep | <https://github.com/BurntSushi/ripgrep> | `15.2.0` | MIT OR Unlicense |
 | tool/ruff | <https://github.com/astral-sh/ruff> | `0.15.11` | MIT |
 | tool/shfmt | <https://github.com/mvdan/sh> | `v3.13.1` | BSD-3-Clause |
-| tool/tmux | <https://github.com/tmux/tmux> | `3.7c` | ISC |
 | tool/yazi | <https://github.com/sxyazi/yazi> | `v26.1.22` | MIT |
 | tool/yazi-prebuilt | <https://github.com/yazi-rs/prebuilt> | `2d52c0b8b399` | MIT |
 | tool/yazi-prebuilt/syntaxes/cmake | <https://github.com/zyxar/Sublime-CMakeLists.git> | `eb40ede56c2d` | MIT |
 | tool/yazi-prebuilt/syntaxes/docker | <https://github.com/asbjornenge/Docker.tmbundle.git> | `0f6b7bc87acf` | MIT |
 | tool/yazi-prebuilt/syntaxes/official | <https://github.com/sublimehq/Packages.git> | `0a97be539c27` | LicenseRef-SublimeHQ-Packages |
 | tool/yazi-prebuilt/syntaxes/toml | <https://github.com/jasonwilliams/sublime_toml_highlighting.git> | `fd0bf3e5d6c9` | MIT |
-
-<details><summary>Rust crates of fd: 69 built, 60 manifest-only stubs (pinned by its Cargo.lock)</summary>
-
-| Crate | License | Built |
-|---|---|---|
-| aho-corasick-1.1.4 | Unlicense OR MIT | yes |
-| anstream-1.0.0 | MIT OR Apache-2.0 | yes |
-| anstyle-1.0.13 | MIT OR Apache-2.0 | yes |
-| anstyle-parse-1.0.0 | MIT OR Apache-2.0 | yes |
-| anstyle-query-1.1.5 | MIT OR Apache-2.0 | yes |
-| anstyle-wincon-3.0.11 | MIT OR Apache-2.0 | no (stub) |
-| anyhow-1.0.104 | MIT OR Apache-2.0 | yes |
-| argmax-0.4.0 | MIT OR Apache-2.0 | yes |
-| bitflags-1.3.2 | MIT OR Apache-2.0 | yes |
-| bitflags-2.11.0 | MIT OR Apache-2.0 | yes |
-| block2-0.6.2 | MIT | no (stub) |
-| bstr-1.12.1 | MIT OR Apache-2.0 | yes |
-| cc-1.2.56 | MIT OR Apache-2.0 | yes |
-| cfg_aliases-0.2.1 | MIT | yes |
-| cfg-if-1.0.4 | MIT OR Apache-2.0 | yes |
-| clap-4.6.1 | MIT OR Apache-2.0 | yes |
-| clap_builder-4.6.0 | MIT OR Apache-2.0 | yes |
-| clap_complete-4.6.5 | MIT OR Apache-2.0 | yes |
-| clap_derive-4.6.1 | MIT OR Apache-2.0 | yes |
-| clap_lex-1.0.0 | MIT OR Apache-2.0 | yes |
-| colorchoice-1.0.4 | MIT OR Apache-2.0 | yes |
-| crossbeam-channel-0.5.16 | MIT OR Apache-2.0 | yes |
-| crossbeam-deque-0.8.6 | MIT OR Apache-2.0 | yes |
-| crossbeam-epoch-0.9.18 | MIT OR Apache-2.0 | yes |
-| crossbeam-utils-0.8.21 | MIT OR Apache-2.0 | yes |
-| ctrlc-3.5.2 | MIT OR Apache-2.0 | yes |
-| defmt-1.1.0 | MIT OR Apache-2.0 | yes |
-| defmt-macros-1.1.0 | MIT OR Apache-2.0 | yes |
-| defmt-parser-1.0.0 | MIT OR Apache-2.0 | yes |
-| diff-0.1.13 | MIT OR Apache-2.0 | no (stub) |
-| dispatch2-0.3.1 | Zlib OR Apache-2.0 OR MIT | no (stub) |
-| equivalent-1.0.2 | Apache-2.0 OR MIT | no (stub) |
-| errno-0.3.14 | MIT OR Apache-2.0 | yes |
-| etcetera-0.11.0 | MIT OR Apache-2.0 | yes |
-| faccess-0.2.4 | MIT | yes |
-| fastrand-2.3.0 | Apache-2.0 OR MIT | no (stub) |
-| filetime-0.2.29 | MIT OR Apache-2.0 | no (stub) |
-| find-msvc-tools-0.1.9 | MIT OR Apache-2.0 | yes |
-| foldhash-0.1.5 | Zlib | no (stub) |
-| getrandom-0.4.2 | MIT OR Apache-2.0 | no (stub) |
-| globset-0.4.19 | Unlicense OR MIT | yes |
-| hashbrown-0.15.5 | MIT OR Apache-2.0 | no (stub) |
-| hashbrown-0.16.1 | MIT OR Apache-2.0 | no (stub) |
-| heck-0.5.0 | MIT OR Apache-2.0 | yes |
-| id-arena-2.3.0 | MIT OR Apache-2.0 | no (stub) |
-| ignore-0.4.31 | Unlicense OR MIT | yes |
-| indexmap-2.13.0 | Apache-2.0 OR MIT | no (stub) |
-| is_terminal_polyfill-1.70.2 | MIT OR Apache-2.0 | yes |
-| itoa-1.0.17 | MIT OR Apache-2.0 | no (stub) |
-| jiff-0.2.29 | Unlicense OR MIT | yes |
-| jiff-static-0.2.29 | Unlicense OR MIT | yes |
-| jiff-tzdb-0.1.6 | Unlicense OR MIT | no (stub) |
-| jiff-tzdb-platform-0.1.3 | Unlicense OR MIT | no (stub) |
-| leb128fmt-0.1.0 | MIT OR Apache-2.0 | no (stub) |
-| libc-0.2.189 | MIT OR Apache-2.0 | yes |
-| linux-raw-sys-0.12.1 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | yes |
-| log-0.4.29 | MIT OR Apache-2.0 | yes |
-| lscolors-0.21.0 | MIT OR Apache-2.0 | yes |
-| memchr-2.8.0 | Unlicense OR MIT | yes |
-| nix-0.30.1 | MIT | yes |
-| nix-0.31.3 | MIT | yes |
-| normpath-1.5.1 | MIT OR Apache-2.0 | yes |
-| nu-ansi-term-0.50.3 | MIT | yes |
-| objc2-0.6.4 | MIT | no (stub) |
-| objc2-encode-4.1.0 | MIT | no (stub) |
-| once_cell-1.21.3 | MIT OR Apache-2.0 | yes |
-| once_cell_polyfill-1.70.2 | MIT OR Apache-2.0 | no (stub) |
-| portable-atomic-1.13.1 | Apache-2.0 OR MIT | no (stub) |
-| portable-atomic-util-0.2.5 | Apache-2.0 OR MIT | no (stub) |
-| prettyplease-0.2.37 | MIT OR Apache-2.0 | no (stub) |
-| proc-macro2-1.0.106 | MIT OR Apache-2.0 | yes |
-| proc-macro-error2-2.0.1 | MIT OR Apache-2.0 | yes |
-| proc-macro-error-attr2-2.0.0 | MIT OR Apache-2.0 | yes |
-| quote-1.0.45 | MIT OR Apache-2.0 | yes |
-| r-efi-6.0.0 | MIT OR Apache-2.0 OR LGPL-2.1-or-later | no (stub) |
-| regex-1.12.4 | MIT OR Apache-2.0 | yes |
-| regex-automata-0.4.14 | MIT OR Apache-2.0 | yes |
-| regex-syntax-0.8.11 | MIT OR Apache-2.0 | yes |
-| rustix-1.1.4 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | yes |
-| same-file-1.0.6 | Unlicense OR MIT | yes |
-| semver-1.0.27 | MIT OR Apache-2.0 | no (stub) |
-| serde-1.0.228 | MIT OR Apache-2.0 | yes |
-| serde_core-1.0.228 | MIT OR Apache-2.0 | yes |
-| serde_derive-1.0.228 | MIT OR Apache-2.0 | no (stub) |
-| serde_json-1.0.149 | MIT OR Apache-2.0 | no (stub) |
-| shlex-1.3.0 | MIT OR Apache-2.0 | yes |
-| strsim-0.11.1 | MIT | yes |
-| syn-2.0.117 | MIT OR Apache-2.0 | yes |
-| tempfile-3.27.0 | MIT OR Apache-2.0 | no (stub) |
-| terminal_size-0.4.3 | MIT OR Apache-2.0 | yes |
-| test-case-3.3.1 | MIT | no (stub) |
-| test-case-core-3.3.1 | MIT | no (stub) |
-| test-case-macros-3.3.1 | MIT | no (stub) |
-| thiserror-2.0.18 | MIT OR Apache-2.0 | yes |
-| thiserror-impl-2.0.18 | MIT OR Apache-2.0 | yes |
-| tikv-jemallocator-0.7.0 | MIT OR Apache-2.0 | yes |
-| tikv-jemalloc-sys-0.7.1+5.3.1-0-g81034ce1f1373e37dc865038e1bc8eeecf559ce8 | MIT OR Apache-2.0 | yes |
-| unicode-ident-1.0.24 | (MIT OR Apache-2.0) AND Unicode-3.0 | yes |
-| unicode-xid-0.2.6 | MIT OR Apache-2.0 | no (stub) |
-| utf8parse-0.2.2 | Apache-2.0 OR MIT | yes |
-| walkdir-2.5.0 | Unlicense OR MIT | yes |
-| wasip2-1.0.2+wasi-0.2.9 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | no (stub) |
-| wasip3-0.4.0+wasi-0.3.0-rc-2026-01-06 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | no (stub) |
-| wasm-encoder-0.244.0 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | no (stub) |
-| wasm-metadata-0.244.0 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | no (stub) |
-| wasmparser-0.244.0 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | no (stub) |
-| winapi-0.3.9 | MIT OR Apache-2.0 | no (stub) |
-| winapi-i686-pc-windows-gnu-0.4.0 | MIT OR Apache-2.0 | no (stub) |
-| winapi-util-0.1.11 | Unlicense OR MIT | no (stub) |
-| winapi-x86_64-pc-windows-gnu-0.4.0 | MIT OR Apache-2.0 | no (stub) |
-| windows_aarch64_gnullvm-0.53.1 | MIT OR Apache-2.0 | no (stub) |
-| windows_aarch64_msvc-0.53.1 | MIT OR Apache-2.0 | no (stub) |
-| windows_i686_gnu-0.53.1 | MIT OR Apache-2.0 | no (stub) |
-| windows_i686_gnullvm-0.53.1 | MIT OR Apache-2.0 | no (stub) |
-| windows_i686_msvc-0.53.1 | MIT OR Apache-2.0 | no (stub) |
-| windows-link-0.2.1 | MIT OR Apache-2.0 | no (stub) |
-| windows-sys-0.60.2 | MIT OR Apache-2.0 | no (stub) |
-| windows-sys-0.61.2 | MIT OR Apache-2.0 | no (stub) |
-| windows-targets-0.53.5 | MIT OR Apache-2.0 | no (stub) |
-| windows_x86_64_gnu-0.53.1 | MIT OR Apache-2.0 | no (stub) |
-| windows_x86_64_gnullvm-0.53.1 | MIT OR Apache-2.0 | no (stub) |
-| windows_x86_64_msvc-0.53.1 | MIT OR Apache-2.0 | no (stub) |
-| wit-bindgen-0.51.0 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | no (stub) |
-| wit-bindgen-core-0.51.0 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | no (stub) |
-| wit-bindgen-rust-0.51.0 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | no (stub) |
-| wit-bindgen-rust-macro-0.51.0 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | no (stub) |
-| wit-component-0.244.0 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | no (stub) |
-| wit-parser-0.244.0 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | no (stub) |
-| zmij-1.0.21 | MIT | no (stub) |
-
-</details>
 
 <details><summary>Rust crates of fish: 99 built, 75 manifest-only stubs (pinned by its Cargo.lock)</summary>
 
@@ -1435,62 +1304,6 @@ license. Generated from `VERSIONS` by `scripts/gen-inventory.py` (run by
 | zerovec-0.11.6 | Unicode-3.0 | yes |
 | zerovec-derive-0.11.3 | Unicode-3.0 | yes |
 | zmij-1.0.21 | MIT | yes |
-
-</details>
-
-<details><summary>Rust crates of ripgrep: 38 built, 11 manifest-only stubs (pinned by its Cargo.lock)</summary>
-
-| Crate | License | Built |
-|---|---|---|
-| aho-corasick-1.1.4 | Unlicense OR MIT | yes |
-| anyhow-1.0.103 | MIT OR Apache-2.0 | yes |
-| arbitrary-1.4.2 | MIT OR Apache-2.0 | yes |
-| bstr-1.13.0 | MIT OR Apache-2.0 | yes |
-| cc-1.2.67 | MIT OR Apache-2.0 | yes |
-| cfg-if-1.0.4 | MIT OR Apache-2.0 | yes |
-| crossbeam-channel-0.5.16 | MIT OR Apache-2.0 | no (stub) |
-| crossbeam-deque-0.8.7 | MIT OR Apache-2.0 | yes |
-| crossbeam-epoch-0.9.20 | MIT OR Apache-2.0 | yes |
-| crossbeam-utils-0.8.22 | MIT OR Apache-2.0 | yes |
-| derive_arbitrary-1.4.2 | MIT OR Apache-2.0 | yes |
-| encoding_rs-0.8.35 | (Apache-2.0 OR MIT) AND BSD-3-Clause | yes |
-| encoding_rs_io-0.1.7 | MIT OR Apache-2.0 | yes |
-| find-msvc-tools-0.1.9 | MIT OR Apache-2.0 | yes |
-| getrandom-0.4.3 | MIT OR Apache-2.0 | no (stub) |
-| glob-0.3.3 | MIT OR Apache-2.0 | no (stub) |
-| itoa-1.0.18 | MIT OR Apache-2.0 | yes |
-| jobserver-0.1.35 | MIT OR Apache-2.0 | yes |
-| lexopt-0.3.2 | MIT | yes |
-| libc-0.2.186 | MIT OR Apache-2.0 | yes |
-| log-0.4.33 | MIT OR Apache-2.0 | yes |
-| memchr-2.8.3 | Unlicense OR MIT | yes |
-| memmap2-0.9.11 | MIT OR Apache-2.0 | yes |
-| pcre2-0.2.11 | Unlicense OR MIT | yes |
-| pcre2-sys-0.2.10 | Unlicense OR MIT | yes |
-| pkg-config-0.3.33 | MIT OR Apache-2.0 | yes |
-| proc-macro2-1.0.106 | MIT OR Apache-2.0 | yes |
-| quote-1.0.46 | MIT OR Apache-2.0 | yes |
-| r-efi-6.0.0 | MIT OR Apache-2.0 OR LGPL-2.1-or-later | no (stub) |
-| regex-1.13.0 | MIT OR Apache-2.0 | no (stub) |
-| regex-automata-0.4.15 | MIT OR Apache-2.0 | yes |
-| regex-syntax-0.8.11 | MIT OR Apache-2.0 | yes |
-| same-file-1.0.6 | Unlicense OR MIT | yes |
-| serde-1.0.228 | MIT OR Apache-2.0 | yes |
-| serde_core-1.0.228 | MIT OR Apache-2.0 | yes |
-| serde_derive-1.0.228 | MIT OR Apache-2.0 | no (stub) |
-| serde_json-1.0.150 | MIT OR Apache-2.0 | yes |
-| shlex-2.0.1 | MIT OR Apache-2.0 | yes |
-| syn-2.0.119 | MIT OR Apache-2.0 | yes |
-| termcolor-1.4.1 | Unlicense OR MIT | yes |
-| textwrap-0.16.2 | MIT | yes |
-| tikv-jemallocator-0.7.0 | MIT OR Apache-2.0 | no (stub) |
-| tikv-jemalloc-sys-0.7.1+5.3.1-0-g81034ce1f1373e37dc865038e1bc8eeecf559ce8 | MIT OR Apache-2.0 | no (stub) |
-| unicode-ident-1.0.24 | (MIT OR Apache-2.0) AND Unicode-3.0 | yes |
-| walkdir-2.5.0 | Unlicense OR MIT | yes |
-| winapi-util-0.1.11 | Unlicense OR MIT | no (stub) |
-| windows-link-0.2.1 | MIT OR Apache-2.0 | no (stub) |
-| windows-sys-0.61.2 | MIT OR Apache-2.0 | no (stub) |
-| zmij-1.0.23 | MIT | yes |
 
 </details>
 

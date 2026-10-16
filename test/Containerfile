@@ -1,12 +1,15 @@
-# Clean RHEL9 with only packages from the RHEL repos. The build itself runs
+# Clean RHEL9 with only packages from the RHEL repos, plus fd-find and ripgrep from EPEL
+# (as on the target). The build itself runs
 # with --network=none (see test/run.sh).
 FROM registry.access.redhat.com/ubi9/ubi:latest
-# build toolchain (+ libevent/ncurses headers for tmux)
+# build toolchain
 RUN dnf -y install gcc make cmake python3 rust-toolset golang findutils diffutils \
-        libevent-devel ncurses-devel \
     && dnf clean all
 # runtime: git (gitsigns, lazygit), file (yazi); C/C++ development tools RHEL
 # ships itself, used by kide instead of bundling them (clangd/clang-format/
-# clang-tidy, gdb, lldb-dap)
-RUN dnf -y install git-core file gcc-c++ clang-tools-extra gdb lldb \
+# clang-tidy, gdb, lldb-dap), tmux
+RUN dnf -y install git-core file gcc-c++ clang-tools-extra gdb lldb tmux \
     && dnf clean all
+# fd (snacks file pickers), rg (grepprg, snacks grep pickers): EPEL only, not in UBI's repos
+RUN dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
+    && dnf -y install fd-find ripgrep && dnf clean all

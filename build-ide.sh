@@ -8,7 +8,7 @@
 # launcher and bashrc only; nvim, the parsers and the tools are not rebuilt.
 #
 # Needs only the RHEL9 toolchain: gcc, make, cmake, python3, rust-toolset
-# (cargo), golang, libevent-devel + ncurses-devel (tmux). The repo itself is never written to (it can be mounted
+# (cargo), golang. The repo itself is never written to (it can be mounted
 # read-only); intermediate files go to $KIDE_BUILD_DIR (default:
 # $TMPDIR/kide-build).
 #
@@ -18,13 +18,11 @@
 #   PREFIX/bin/{ruff,ty}              Python linter/formatter + type checker (LSP)
 #   PREFIX/bin/neocmakelsp            CMake LSP
 #   PREFIX/bin/shfmt                  shell formatter
-#   PREFIX/bin/{fd,fzf,lazygit}       file finder, fuzzy finder, git TUI
-#   PREFIX/bin/rg                     ripgrep (grepprg, snacks grep pickers)
+#   PREFIX/bin/{fzf,lazygit}          fuzzy finder, git TUI
 #   PREFIX/bin/{yazi,ya}              file manager + its CLI
 #   PREFIX/bin/fish                   fish shell (the container's shell; its
 #                                     functions and completions are built in),
 #                                     + fish_indent, fish_key_reader links
-#   PREFIX/bin/tmux                   terminal multiplexer (fish's `tm`)
 #   PREFIX/bin/kide-python            python3 with the bundled debugpy (nvim-dap)
 #   PREFIX/lib/kreatos-ide/python     debugpy (pure Python)
 #   PREFIX/share/kreatos-ide/config   config/ (init.lua, lua/misw, …)
@@ -198,15 +196,6 @@ go_build() {
 log "shfmt"
 go_build shfmt "$PREFIX/bin/shfmt" ./cmd/shfmt
 
-log "fd"
-cargo_build fd -p fd-find
-install -m755 "$TOOLS/fd/target/release/fd" "$PREFIX/bin/"
-
-log "ripgrep"
-# default features: no pcre2 (would need RHEL's pcre2-devel), Rust regex only
-cargo_build ripgrep -p ripgrep
-install -m755 "$TOOLS/ripgrep/target/release/rg" "$PREFIX/bin/"
-
 log "fzf"
 go_build fzf "$PREFIX/bin/fzf" . -ldflags "-X main.version=$(awk '$1 == "fzf" { print substr($4, 2) }' "$ROOT/manifest/tools.tsv") -X main.revision=kide"
 
@@ -222,20 +211,6 @@ cargo_build fish -p fish --no-default-features --bin fish
 install -m755 "$TOOLS/fish/target/release/fish" "$PREFIX/bin/"
 ln -sf fish "$PREFIX/bin/fish_indent"
 ln -sf fish "$PREFIX/bin/fish_key_reader"
-
-log "tmux"
-# the release tarball (manifest kind release) has a generated configure and
-# cmd-parse.c, so no autotools or yacc are needed (RHEL/UBI have no yacc):
-# - configure still insists on finding one; YACC=true satisfies the check
-# - git keeps no mtimes, so cmd-parse.y or configure.ac can look newer than
-#   what was generated from them; one mtime for all files stops make from
-#   regenerating them
-# Links RHEL's libevent and ncurses (libtinfo).
-cp -a "$ROOT/vendor/tools/tmux" "$TOOLS/tmux"
-find "$TOOLS/tmux" -exec touch -h -d @1700000000 {} +
-(cd "$TOOLS/tmux" && ./configure YACC=true --prefix="$PREFIX" >configure.log && make -j "$JOBS" >make.log) ||
-  { tail -30 "$TOOLS/tmux/configure.log" "$TOOLS/tmux/make.log" 2>/dev/null; exit 1; }
-install -m755 "$TOOLS/tmux/tmux" "$PREFIX/bin/"
 
 # yazi needs two binary inputs that the source-only rule strips:
 # - yazi-prebuilt's built/syntaxes, the compiled syntax set for code previews:

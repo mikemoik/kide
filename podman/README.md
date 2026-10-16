@@ -270,6 +270,6 @@ with podman instead of docker. Not tested yet.
   only works where Neovim falls back to OSC 52 and the terminal allows it.
 - C/C++ builds and debugging run inside the container with RHEL9's compilers,
   not the host's.
-- tmux (3.7c) is built from source by `build-ide.sh`, like the other tools; it
-  needs only base packages (libevent, ncurses).
+- tmux is RHEL's package, fd (`fd-find`) and rg (`ripgrep`) are EPEL's;
+  everything else of kide's tools is built from source by `build-ide.sh`.
 - Updating: pull/checkout the new version and build the image again.
