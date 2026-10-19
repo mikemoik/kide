@@ -1,7 +1,13 @@
 # keymap bundled with kide: swaps yazi's two quit keys. With fish's `y`,
 # Q quits and cds the shell to the directory yazi was in; q just quits.
+# n / b / Enter: search-jump-legacy (see yazi.toml) in a content-search result
+# list (next / previous match, edit at the match with $EDITOR = kide);
+# elsewhere they stay find_arrow / find_arrow --previous / open.
 [mgr]
 prepend_keymap = [
 	{ on = "Q", run = "quit",               desc = "Quit and cd the shell to the current directory" },
 	{ on = "q", run = "quit --no-cwd-file", desc = "Quit (no cd)" },
+	{ on = "n",       run = "plugin search-jump-legacy -- next", desc = "Next match in preview (search) / next found" },
+	{ on = "b",       run = "plugin search-jump-legacy -- prev", desc = "Previous match in preview (search) / previous found" },
+	{ on = "<Enter>", run = "plugin search-jump-legacy -- open", desc = "Edit at the shown match (search) / open" },
 ]

@@ -9,6 +9,8 @@ set -l kide_prefix (path resolve (status dirname)/../../..)
 # the bundled config
 contains -- $kide_prefix/bin $PATH; or set -gx PATH $kide_prefix/bin $PATH
 set -gx YAZI_CONFIG_HOME $kide_prefix/share/kreatos-ide/yazi
+# kide is the editor for git, lazygit and yazi's search-jump (Enter at a match)
+set -gx EDITOR kide
 
 # functions/: the IDE's fish functions (autoloaded, e.g. tm)
 set -l kide_functions (status dirname)/functions

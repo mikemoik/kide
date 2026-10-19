@@ -1,8 +1,21 @@
 # yazi config bundled with kide (PREFIX/share/kreatos-ide/yazi, via
-# YAZI_CONFIG_HOME). keymap.toml swaps q/Q; everything else is upstream's default.
+# YAZI_CONFIG_HOME). keymap.toml swaps q/Q and binds search-jump; everything
+# else is upstream's default.
 
 # text files (Enter, `o`) open in kide instead of $EDITOR
 [opener]
 edit = [
 	{ run = 'kide "$@"', desc = "kide", block = true, for = "unix" },
 ]
+
+# search-jump-legacy (plugins/, copied from mikemoik/plugins-yazi d71b73c, the
+# variant for yazi 26.1.22): in a content-search result list (`S`) the preview
+# opens at the first match, highlighted by bat. Outside search results it is
+# the built-in code/json preview. Same mime rules as yazi's code/json previewers.
+[[plugin.prepend_previewers]]
+mime = "text/*"
+run  = "search-jump-legacy"
+
+[[plugin.prepend_previewers]]
+mime = "application/{mbox,javascript,wine-extension-ini,json,ndjson}"
+run  = "search-jump-legacy"

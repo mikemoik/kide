@@ -17,13 +17,14 @@
 set -euo pipefail
 
 # build toolchain, tar (download), git (gitsigns, lazygit), file (yazi), the
-# C/C++ tools kide uses from RHEL, tmux, and fd-find + ripgrep (fd: snacks file
-# pickers; rg: grepprg, snacks grep pickers; both from EPEL, so EPEL must be enabled).
+# C/C++ tools kide uses from RHEL, tmux, and fd-find + ripgrep + bat (fd: snacks
+# file pickers; rg: grepprg, snacks grep pickers; bat: yazi preview highlighting;
+# all three from EPEL, so EPEL must be enabled).
 # The libraries C/C++ projects build against are not kide's: they are the
 # ibn-dev build environment (separate repo, a container).
 # All come from the box's configured dnf repos; install.sh adds no repos.
 PKGS=(gcc make cmake python3 rust-toolset golang findutils diffutils tar
-      git-core gcc-c++ clang-tools-extra gdb lldb file tmux fd-find ripgrep)
+      git-core gcc-c++ clang-tools-extra gdb lldb file tmux fd-find ripgrep bat)
 
 log() { printf '\033[1m==> %s\033[0m\n' "$*"; }
 

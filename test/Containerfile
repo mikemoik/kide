@@ -1,4 +1,4 @@
-# Clean RHEL9 with only packages from the RHEL repos, plus fd-find and ripgrep from EPEL
+# Clean RHEL9 with only packages from the RHEL repos, plus fd-find, ripgrep and bat from EPEL
 # (as on the target). The build itself runs
 # with --network=none (see test/run.sh).
 FROM registry.access.redhat.com/ubi9/ubi:latest
@@ -10,6 +10,6 @@ RUN dnf -y install gcc make cmake python3 rust-toolset golang findutils diffutil
 # clang-tidy, gdb, lldb-dap), tmux
 RUN dnf -y install git-core file gcc-c++ clang-tools-extra gdb lldb tmux \
     && dnf clean all
-# fd (snacks file pickers), rg (grepprg, snacks grep pickers): EPEL only, not in UBI's repos
+# fd (snacks file pickers), rg (grepprg, snacks grep pickers), bat: EPEL only, not in UBI's repos
 RUN dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
-    && dnf -y install fd-find ripgrep && dnf clean all
+    && dnf -y install fd-find ripgrep bat && dnf clean all

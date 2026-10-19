@@ -19,10 +19,10 @@ everything:
 
 1. Installs the RHEL packages that are missing (asks for your sudo
    password): the build toolchain (gcc, make, cmake, python3, rust-toolset,
-   golang), tar, git-core, tmux, fd-find, ripgrep, and the
+   golang), tar, git-core, tmux, fd-find, ripgrep, bat, and the
    [C/C++ tools](#cc-development) kide uses from RHEL. All from the box's
-   configured dnf repos (install.sh adds no repos); fd-find and ripgrep are
-   from EPEL, so EPEL must be enabled.
+   configured dnf repos (install.sh adds no repos); fd-find, ripgrep and bat
+   are from EPEL, so EPEL must be enabled.
 2. Downloads this repo as a tarball into a temp dir (removed afterwards).
 3. Builds and installs kreatos-ide offline into `~/.local/kreatos-ide`
    (`build-ide.sh`, ~5 min).
@@ -93,9 +93,9 @@ from somewhere.
    missing, and stops if `dnf` fails. The full list:
 
        sudo dnf install gcc make cmake python3 rust-toolset golang findutils diffutils tar \
-           git-core gcc-c++ clang-tools-extra gdb lldb file tmux fd-find ripgrep
+           git-core gcc-c++ clang-tools-extra gdb lldb file tmux fd-find ripgrep bat
 
-   `fd-find` and `ripgrep` come from EPEL, so the box needs EPEL enabled;
+   `fd-find`, `ripgrep` and `bat` come from EPEL, so the box needs EPEL enabled;
    everything else is from the RHEL repos.
 
 4. Unpack and install (into `~/.local/kreatos-ide`, ~5 min; an argument picks
@@ -465,7 +465,7 @@ gets one setting, see below):
 
 - `lazygit` — git TUI; inside kide on `<leader>gg` (root dir) / `<leader>gG` (cwd)
 - `fish` — shell; the podman container's default shell, with the IDE's
-  helpers from `fish/` (`config.fish`, `aliases.fish`: `vi` = kide, `lg` = lazygit, `y` = yazi (`Q` quits into its directory), `ll` = ls -alh, `ff` = fzf → kide, `ffex` = fzf over exported variables → clipboard; function `tm NAME` = tmux session). A
+  helpers from `fish/` (`config.fish`, `aliases.fish`: `vi` = kide, `lg` = lazygit, `y` = yazi (`Q` quits into its directory), `ll` = ls -alh, `ff` = fzf → kide, `ffex` = fzf over exported variables → clipboard; function `tm NAME` = tmux session; `EDITOR` = kide). A
   normal install builds it too but keeps bash as the login shell.
 - `yazi` + `ya` — file manager; text files (Enter, `o`) open in kide. `PREFIX/bashrc`
   sets `YAZI_CONFIG_HOME` to the bundled config (`yazi/yazi.toml`, installed
@@ -477,6 +477,14 @@ gets one setting, see below):
   Dockerfile; other text files preview as plain text, and so do HTML,
   TypeScript/JSX/TSX and PHP (their Sublime syntaxes are too new for
   syntect, as in upstream yazi).
+  Content search (`S`, via `rg`) has match jumping from the plugin
+  `search-jump-legacy` (`yazi/plugins/`, MIT, copied unchanged from
+  mikemoik/plugins-yazi commit `d71b73c`, the variant for yazi 26.1.22; update
+  it by copying a newer commit over it). In the result list the preview opens
+  at the first match with all matches highlighted (needs `bat`), `n` / `b`
+  step to the next / previous match, and `Enter` opens `$EDITOR` (kide in
+  fish) at the match line. Outside search results `n`, `b`, `Enter` and the
+  preview behave as before.
 - `fzf` — fuzzy finder
 
 From packages, not built by kide (`install.sh` / the image install them):
@@ -486,6 +494,8 @@ From packages, not built by kide (`install.sh` / the image install them):
 - `fd` — `fd-find` from EPEL; fast `find`, the snacks file pickers use it
 - `rg` — `ripgrep` from EPEL; `:grep` (`grepprg`) and the snacks grep pickers
   use it
+- `bat` — from EPEL; syntax-highlighted file viewer (`cat` with colors); yazi's
+  search-jump preview renders through it
 
 ## Moving the repo to an on-prem GitLab
 
@@ -615,7 +625,7 @@ off TLS checks instead.
 | `vendor/tools` | LSP servers, formatters, debugger (`manifest/tools.tsv`): ruff + ty, neocmakelsp, shfmt, debugpy, fzf, lazygit, yazi, yazi-prebuilt (the syntax repos for yazi's previews); Go tools carry their modules in their own `vendor/` |
 | `vendor/crates` | the Rust crates of each cargo tool (`cargo vendor --locked`), plus the cargo source config |
 | `config` | the nvim config (kreatos `home/nvim`, adapted, see below) |
-| `yazi` | the yazi config bundled with kide (text files open in kide) |
+| `yazi` | the yazi config bundled with kide (text files open in kide), with the `search-jump-legacy` plugin in `yazi/plugins/` |
 | `putty` | `kide.reg`: Windows PuTTY session with the kreatos colours ([PuTTY](#remote-kide-over-ssh-from-windows-putty)) |
 | `manifest/` | the pins; `parsers.lock.tsv` is generated from `parsers.txt`; `licenses.tsv` holds license facts the inventory cannot detect |
 | `VERSIONS` | every vendored component with upstream URL and commit/tag/sha256 |

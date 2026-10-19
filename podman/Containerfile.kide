@@ -57,14 +57,14 @@ FROM $BASE
 USER root
 # python3 (kide-python, debugpy), git (gitsigns, lazygit), file (yazi), the
 # C/C++ tools kide uses from RHEL (clangd/clang-format/clang-tidy, gdb,
-# lldb-dap), tmux, fd-find + ripgrep from EPEL (fd: snacks file pickers;
-# rg: grepprg, snacks grep pickers), shadow-utils (useradd/usermod) for
+# lldb-dap), tmux, fd-find + ripgrep + bat from EPEL (fd: snacks file pickers;
+# rg: grepprg, snacks grep pickers; bat: syntax-highlighted cat), shadow-utils (useradd/usermod) for
 # KIDE_USER below.
 ARG CONF_DIR
 COPY $CONF_DIR/ubi.repo /etc/yum.repos.d/ubi.repo
 COPY $CONF_DIR/repos.sh /tmp/repos.sh
 RUN /tmp/repos.sh && dnf -y install python3 git-core file findutils diffutils shadow-utils \
-        clang-tools-extra gdb lldb tmux fd-find ripgrep \
+        clang-tools-extra gdb lldb tmux fd-find ripgrep bat \
     && dnf clean all
 COPY --from=build /opt/kide /opt/kide
 # git trusts every repo (as in ibn-dev)
