@@ -148,6 +148,17 @@ By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
 - git trusts every repo in the container (`safe.directory = *` in
   `/etc/gitconfig`), so it never stops with "dubious ownership", whichever
   uid the project appears as inside.
+- git identity and other git settings: `/etc/gitconfig` includes
+  `/workspace/.container/.gitconfig` (host: `~/workspace/.container/.gitconfig`)
+  if it exists, e.g.
+
+      [user]
+          name = Your Name
+          email = you@example.com
+
+  It is read at system level, so a global config wins over it: with
+  `start.sh`, the host's `~/.gitconfig` (mounted as `GIT_CONFIG_GLOBAL`)
+  overrides the same keys.
 
 The container starts fish (lazygit, yazi, cmake, gdb, … are all on `PATH`);
 `kide` opens the IDE. bash instead: `… kide bash`.

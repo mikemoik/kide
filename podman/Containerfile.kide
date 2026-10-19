@@ -67,8 +67,12 @@ RUN /tmp/repos.sh && dnf -y install python3 git-core file findutils diffutils sh
         clang-tools-extra gdb lldb tmux fd-find ripgrep bat \
     && dnf clean all
 COPY --from=build /opt/kide /opt/kide
-# git trusts every repo (as in ibn-dev)
-RUN git config --system --replace-all safe.directory '*'
+# git trusts every repo (as in ibn-dev). Your git config (user.name/email, …)
+# from the mounted workspace, if present (host: ~/workspace/.container/.gitconfig);
+# git skips a missing include file. System level: a global config (start.sh
+# mounts ~/.gitconfig) still overrides it.
+RUN git config --system --replace-all safe.directory '*' \
+    && git config --system include.path /workspace/.container/.gitconfig
 # tmux (RHEL's) reads /etc/tmux.conf first: mouse on, so a click
 # selects a pane, dragging a border resizes, the wheel scrolls. Last, your own
 # tmux config from the mounted workspace, if present (host:

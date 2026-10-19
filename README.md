@@ -192,7 +192,10 @@ By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
   on the host; the image's hooks are overwritten when the image has a newer
   version. Likewise tmux reads
   `~/workspace/.container/tmux.conf` last, if it exists, after the image's
-  `/etc/tmux.conf` (mouse on).
+  `/etc/tmux.conf` (mouse on), and git reads
+  `~/workspace/.container/.gitconfig` (your `[user] name`/`email`, …), if it
+  exists, via an include in the image's `/etc/gitconfig`; a global config
+  (`start.sh`'s mounted `~/.gitconfig`) overrides the same keys.
 - `-v kide-data:/var/lib/kide`: kide's data and state survive the container;
   leave it out for a throwaway session.
 - `--userns=keep-id:uid=1001,gid=1001`: the image runs as the user `default`
