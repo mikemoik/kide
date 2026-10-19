@@ -132,7 +132,7 @@ By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
   `~/workspace/.container/tmux.conf` last, if it exists, after the image's
   `/etc/tmux.conf` (mouse on).
 - `-v kide-data:/var/lib/kide`: kide's data and state (undo history, shada,
-  swap files, sessions, fish history) survive the container. Leave it out for
+  swap files, sessions) survive the container. Leave it out for
   a throwaway session. The image points `XDG_DATA_HOME`/`XDG_STATE_HOME` there
   instead of `~/.local`, so the mount point does not depend on the user's
   home.
@@ -174,7 +174,8 @@ the mounted workspace, then sources every file there in name order:
 | On the host | Sourced by | From |
 |---|---|---|
 | `~/workspace/.container/bash/10-ibn-dev.sh`, `fish/10-ibn-dev.fish` | bash, fish | the ibn-dev image (when kide is built on it) |
-| `~/workspace/.container/bash/20-kide.sh`, `fish/20-kide.fish` | bash, fish | this image: `/opt/kide/bashrc`, the bundled fish config |
+| `~/workspace/.container/bash/20-kide.sh`, `fish/20-kide.fish` | bash, fish | this image: `/opt/kide/bashrc`, the bundled fish config, shell history in `.container/kide/` |
+| `~/workspace/.container/kide/fish_history`, `bash_history` | fish, bash | the history itself, written by the shells (fish: through a symlink at `$XDG_DATA_HOME/fish/fish_history`, since fish has no setting for the path; a history already in the volume moves there once; bash: `HISTFILE`, appended after every command so parallel shells keep all entries) |
 | `~/workspace/.container/{bash,fish}/<yours>` | bash, fish | you, e.g. `50-my.fish` |
 
 - The image's hooks are the image's: a changed one is overwritten at the next
@@ -223,9 +224,10 @@ Functions (`fish/functions/`, autoloaded):
 
 New helpers go into `fish/` (aliases into `aliases.fish`, functions into
 `functions/NAME.fish`) and the tables above;
-the image has to be built again to pick them up. fish's history is in
-`/var/lib/kide/share/fish` (`XDG_DATA_HOME`), so it survives the container with the `kide-data`
-volume. bash still works as a fallback (`podman run … kide bash`).
+the image has to be built again to pick them up. Shell history (fish and
+bash, Ctrl-R searches it) is kept in the workspace: `~/workspace/.container/kide/fish_history`
+and `bash_history` (see [Shell hooks](#shell-hooks-workspacecontainer)), so it survives the
+container even without the `kide-data` volume. bash still works as a fallback (`podman run … kide bash`).
 
 fish is built without its man pages (they need Sphinx), so builtins' `--help`
 has no page to show; `help` points to <https://fishshell.com/docs/current/>.

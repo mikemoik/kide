@@ -190,7 +190,8 @@ By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
   (bash) or `*.fish` (fish) there in name order. Your own config (aliases,
   PATH, …) goes into files of your own next to them, e.g. `50-my.fish`, kept
   on the host; the image's hooks are overwritten when the image has a newer
-  version. Likewise tmux reads
+  version. kide's hook keeps the fish and bash history (Ctrl-R) in
+  `~/workspace/.container/kide/` (`fish_history`, `bash_history`). Likewise tmux reads
   `~/workspace/.container/tmux.conf` last, if it exists, after the image's
   `/etc/tmux.conf` (mouse on), and git reads
   `~/workspace/.container/.gitconfig` (your `[user] name`/`email`, …), if it
