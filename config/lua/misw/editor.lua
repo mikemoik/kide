@@ -510,8 +510,8 @@ local function yazi()
 end
 
 -- the current file in the other git worktrees: pick one by name, it opens in a
--- split to the right
-local function worktree_sibling()
+-- split to the right (diff: diffed against the current window)
+local function worktree_sibling(diff)
   local file = vim.uv.fs_realpath(vim.api.nvim_buf_get_name(0))
   local root = file and vim.fs.root(file, ".git")
   local siblings = {}
@@ -535,8 +535,22 @@ local function worktree_sibling()
       return s.name
     end,
   }, function(s)
-    if s then
-      vim.cmd("belowright vsplit " .. vim.fn.fnameescape(s.path))
+    if not s then
+      return
+    end
+    local win = vim.api.nvim_get_current_win()
+    vim.cmd((diff and "belowright vert diffsplit " or "belowright vsplit ") .. vim.fn.fnameescape(s.path))
+    if diff then
+      -- closing the sibling ends the diff in the window it was opened from
+      vim.api.nvim_create_autocmd("WinClosed", {
+        pattern = tostring(vim.api.nvim_get_current_win()),
+        once = true,
+        callback = function()
+          if vim.api.nvim_win_is_valid(win) then
+            vim.api.nvim_win_call(win, vim.cmd.diffoff)
+          end
+        end,
+      })
     end
   end)
 end
@@ -546,7 +560,12 @@ function M.setup()
   pickers()
   neo_tree()
   yazi()
-  map("n", "<leader>fw", worktree_sibling, { desc = "Worktree Sibling (vsplit)" })
+  map("n", "<leader>fw", function()
+    worktree_sibling(false)
+  end, { desc = "Worktree Sibling (vsplit)" })
+  map("n", "<leader>fW", function()
+    worktree_sibling(true)
+  end, { desc = "Worktree Sibling (diff)" })
   local arg = vim.fn.argv(0) --[[@as string]]
   local stat = arg ~= "" and vim.uv.fs_stat(arg)
   if stat and stat.type == "directory" then
