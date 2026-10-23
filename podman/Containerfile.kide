@@ -27,7 +27,7 @@ ARG BASE
 # CONF_DIR (podman/base.conf): repos.sh, ubi.repo, …
 ARG CONF_DIR
 
-# --- build: the RHEL9 toolchain + build-ide.sh (as test/run.sh) ---------------
+# --- build: the RHEL9 toolchain + build-ide.sh -------------------------------
 FROM $BASE AS build
 USER root
 ARG CONF_DIR

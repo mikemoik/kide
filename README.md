@@ -27,10 +27,7 @@ everything:
 2. Downloads this repo as a tarball into a temp dir (removed afterwards).
 3. Builds and installs kreatos-ide offline into `~/.local/kreatos-ide`
    (`build-ide.sh`, ~5 min).
-4. Copies the sample projects to `~/kide-samples` (only if that does not
-   exist yet): `customers-py` and `customers-cpp`, a multi-file customer
-   database in Python and C++/CMake to try kide on (see their READMEs).
-5. Opens a new shell in which `kide` works. Every later shell finds it too.
+4. Opens a new shell in which `kide` works. Every later shell finds it too.
 
 `install.sh` holds no repo URL: piped from `curl` it downloads the tarball
 given in `KIDE_TARBALL` and stops with an error if it is not set (a checkout
@@ -51,8 +48,8 @@ nvim, the treesitter parsers and the tools stay as they are:
 (`./install.sh --no-build [PREFIX]` from a checkout.) A change to Neovim, the
 parser list or a tool still needs the full install.
 
-Everything is installed inside `PREFIX`. The only changes outside it are
-`~/kide-samples` and one line `build-ide.sh` adds to `~/.bashrc` (once), sourcing
+Everything is installed inside `PREFIX`. The only change outside it is
+one line `build-ide.sh` adds to `~/.bashrc` (once), sourcing
 `PREFIX/bashrc`, which
 puts `PREFIX/bin` at the front of `PATH`, so `kide` and the bundled tools are
 found first in every new shell.
@@ -107,7 +104,7 @@ from somewhere.
        ./install.sh
 
    From an unpacked tree `install.sh` skips the download and does the other
-   steps listed above (packages, build, samples, new shell). The tree is only
+   steps listed above (packages, build, new shell). The tree is only
    read; it can be deleted afterwards.
 
 Updating offline: bring over a new tarball, unpack it, and run `./install.sh`
@@ -720,38 +717,9 @@ even in CRB), so every crate the build needs is in `vendor/crates` as source.
 2. `scripts/vendor-update.sh` — the only step that downloads; needs curl, tar,
    sha256sum, git, cargo, Python >= 3.11, an nvim to resolve the parser list,
    and Go (if not installed, RHEL's Go runs in a UBI9 container via docker).
-3. `test/run.sh` — must pass before committing.
-4. Review `git status` / `VERSIONS` and the regenerated "Third-party
+3. Review `git status` / `VERSIONS` and the regenerated "Third-party
    software" section below (a new component with an unrecognised license
    stops the vendor run until it is added to `manifest/licenses.tsv`), commit.
-
-## Testing
-
-`test/run.sh` builds a clean `registry.access.redhat.com/ubi9/ubi` image with
-only the toolchain RPMs, then runs `build-ide.sh` and `test/smoke.lua` in it with
-`--network=none` and a read-only copy of the files git tracks (what the
-install tarball holds: no untracked or ignored files, no empty directories;
-`git add` new files first). The smoke test checks: clean
-startup, every plugin on the runtimepath, every parser loads and its
-highlights query compiles, treesitter highlighting on Lua/Python/sh/TypeScript
-files, each LSP server attaches to a small project and reports a diagnostic,
-each formatter formats through conform, a debugpy session started through
-nvim-dap-python stops at a breakpoint, blink.cmp running with the Lua
-matcher. For C/C++ (the test image also installs RHEL's gcc-c++,
-clang-tools-extra, gdb and lldb): a small CMake project is configured and
-built, clangd reports an error, neocmakelsp attaches, clang-format formats,
-gdb and lldb-dap each stop at a breakpoint in the built program, cmake-tools,
-clangd_extensions and neotest-gtest load, neogen writes a Doxygen comment.
-Then the fish config, aliases and functions, lazygit and tmux.
-
-To try the install by hand in the same container (the container and its
-install are gone on exit; the image already has every package `install.sh`
-wants, so it needs no network):
-
-    docker run --rm -it --network=none -v "$PWD:/src:ro" kide-test /src/install.sh
-
-The build environment's tests (the C/C++ libraries, and prodsim, the
-container workflow end to end) are in the ibn-dev repo.
 
 <!-- inventory:start -->
 
