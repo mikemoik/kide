@@ -239,8 +239,8 @@ local function run()
   local picked = vim.fn.system({ "fzf", "--filter", "cstdb" }, "customer_db.cpp\nreport.cpp\n")
   check("fzf filters", vim.trim(picked) == "customer_db.cpp", picked)
 
-  -- yazi.nvim: the keymaps are registered and :checkhealth yazi passes
-  for _, lhs in ipairs({ "<leader>fy", "<leader>fY", "<leader>fz" }) do
+  -- yazi.nvim + worktree sibling: the keymaps are registered, :checkhealth yazi passes
+  for _, lhs in ipairs({ "<leader>fy", "<leader>fY", "<leader>fz", "<leader>fw" }) do
     check("keymap " .. lhs, vim.fn.maparg(lhs, "n") ~= "")
   end
   vim.cmd("checkhealth yazi")

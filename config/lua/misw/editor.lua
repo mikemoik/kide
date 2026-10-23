@@ -1,5 +1,6 @@
 -- Editing and navigation: snacks pickers, which-key, flash, mini.ai/pairs,
--- trouble, todo-comments, grug-far, persistence, neo-tree, yazi, scratch buffers.
+-- trouble, todo-comments, grug-far, persistence, neo-tree, yazi, worktree
+-- siblings, scratch buffers.
 local util = require("misw.util")
 local M = {}
 
@@ -508,11 +509,44 @@ local function yazi()
   )
 end
 
+-- the current file in the other git worktrees: pick one by name, it opens in a
+-- split to the right
+local function worktree_sibling()
+  local file = vim.uv.fs_realpath(vim.api.nvim_buf_get_name(0))
+  local root = file and vim.fs.root(file, ".git")
+  local siblings = {}
+  if root then
+    local rel = vim.fs.relpath(root, file)
+    local res = vim.system({ "git", "-C", root, "worktree", "list", "--porcelain" }, { text = true }):wait()
+    for wt in (res.code == 0 and res.stdout or ""):gmatch("worktree ([^\n]+)") do
+      local path = vim.fs.joinpath(wt, rel)
+      local stat = vim.uv.fs_stat(path)
+      if vim.uv.fs_realpath(wt) ~= root and stat and stat.type == "file" then
+        siblings[#siblings + 1] = { name = vim.fs.basename(wt), path = path }
+      end
+    end
+  end
+  if #siblings == 0 then
+    return vim.notify("no worktree sibling!", vim.log.levels.WARN)
+  end
+  vim.ui.select(siblings, {
+    prompt = "Worktree",
+    format_item = function(s)
+      return s.name
+    end,
+  }, function(s)
+    if s then
+      vim.cmd("belowright vsplit " .. vim.fn.fnameescape(s.path))
+    end
+  end)
+end
+
 -- runs during init.lua
 function M.setup()
   pickers()
   neo_tree()
   yazi()
+  map("n", "<leader>fw", worktree_sibling, { desc = "Worktree Sibling (vsplit)" })
   local arg = vim.fn.argv(0) --[[@as string]]
   local stat = arg ~= "" and vim.uv.fs_stat(arg)
   if stat and stat.type == "directory" then
