@@ -2,7 +2,8 @@
 
 kreatos Neovim setup, packaged to build **offline from source** on
 RHEL9. Everything the build needs is in this repo; the build never touches the
-network, and `vendor/` holds no binaries (checked by `scripts/check-sources.py`).
+network, and `vendor/` holds no binaries and no upstream `.git*` files (checked by
+`scripts/check-sources.py`; the root `.gitignore` is the only one).
 
 The C/C++ build environment (RHEL toolchain and libraries, CMake 4,
 onnxruntime, ACE+TAO, OpenDDS, GDAL) is a separate repo, **ibn-dev**: a

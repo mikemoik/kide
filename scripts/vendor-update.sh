@@ -2,7 +2,7 @@
 # vendor-update.sh — the ONLY step that touches the network.
 #
 # Re-fetches every pinned source listed in manifest/ into vendor/, strips
-# non-text files, and writes VERSIONS. Run it deliberately (on a connected
+# non-text and .git* files, and writes VERSIONS. Run it deliberately (on a connected
 # machine with curl, tar, sha256sum, python3 and nvim), review the diff,
 # commit. build-ide.sh never downloads anything.
 #
@@ -226,7 +226,7 @@ print(u["url"], u["digests"]["sha256"])')
 done <"$ROOT/manifest/tools.tsv"
 
 # --- strip + record ----------------------------------------------------------
-log "stripping non-text files"
+log "stripping non-text and .git* files"
 python3 "$ROOT/scripts/check-sources.py" --strip "$V"
 sort "$TMP/versions" >"$ROOT/VERSIONS"
 cp "$TMP/parsers.lock.tsv" "$ROOT/manifest/parsers.lock.tsv"

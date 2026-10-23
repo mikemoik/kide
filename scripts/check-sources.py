@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
-"""Enforce the source-only rule: no binary files, no symlinks leaving the tree.
+"""Enforce the source-only rule: no binary files, no symlinks leaving the tree,
+no .git* files.
 
   check-sources.py DIR...          fail (exit 1) listing every violation
-  check-sources.py --strip DIR...  delete binary files instead (vendor step)
+  check-sources.py --strip DIR...  delete binary and .git* files instead (vendor step)
 
 A file counts as binary when it contains a NUL byte (images, archives,
 compiled objects, wasm, …). Empty files are fine.
+
+.git* files and directories (.gitignore, .gitattributes, .github/,
+.git-blame-ignore-revs, …) come over from the upstream repos and are not
+needed to build. A nested .gitignore keeps files out of kide's commits, and a
+crate whose listed .git* file goes missing fails cargo's checksum check.
 
 Stripping a file inside a vendored Rust crate also drops it from the crate's
 .cargo-checksum.json, which cargo checks file by file (these are e.g. the
 Windows import libraries of windows-* crates, never built on Linux).
 """
+import shutil
 import json
 import os
 import sys
@@ -23,7 +30,9 @@ def drop_cargo_checksum(path):
         if os.path.isfile(sums):
             with open(sums) as f:
                 data = json.load(f)
-            data["files"].pop(os.path.relpath(path, d), None)
+            rel = os.path.relpath(path, d)
+            # a stripped directory drops every file below it
+            data["files"] = {k: v for k, v in data["files"].items() if k != rel and not k.startswith(rel + "/")}
             with open(sums, "w") as f:
                 json.dump(data, f)
             return
@@ -42,7 +51,19 @@ def scan(top, strip):
     bad = []
     top_real = os.path.realpath(top)
     for dirpath, dirnames, filenames in os.walk(top):
-        dirnames[:] = [d for d in dirnames if d != ".git"]
+        for name in [n for n in filenames + dirnames if n.startswith(".git")]:
+            path = os.path.join(dirpath, name)
+            if strip:
+                if os.path.isdir(path) and not os.path.islink(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+                drop_cargo_checksum(path)
+                print(f"stripped {os.path.relpath(path, top)}")
+            else:
+                bad.append(f"git file: {path}")
+        filenames[:] = [n for n in filenames if not n.startswith(".git")]
+        dirnames[:] = [d for d in dirnames if not d.startswith(".git")]
         for name in filenames + [d for d in dirnames if os.path.islink(os.path.join(dirpath, d))]:
             path = os.path.join(dirpath, name)
             if os.path.islink(path):
