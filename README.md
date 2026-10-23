@@ -469,7 +469,7 @@ gets one setting, see below):
 
 - `lazygit` — git TUI; inside kide on `<leader>gg` (root dir) / `<leader>gG` (cwd)
 - `fish` — shell; the podman container's default shell, with the IDE's
-  helpers from `fish/` (`config.fish`, `aliases.fish`: `vi` = kide, `lg` = lazygit, `y` = yazi (`Q` quits into its directory), `ll` = ls -alh, `ff` = fzf → kide, `ffex` = fzf over exported variables → clipboard; function `tm NAME` = tmux session; `EDITOR` = kide). A
+  helpers from `fish/` (`config.fish`, `aliases.fish`: `vi` = kide, `lg` = lazygit, `y` = yazi (`Q` quits into its directory), `ll` = ls -alh, `ff` = fzf → kide, `ffex` = fzf over exported variables → clipboard; function `tm NAME` = tmux session, `fgo` = clipboard file positions → yazi, `clip_paste` = print the tmux paste buffer; `EDITOR` = kide). A
   normal install builds it too but keeps bash as the login shell.
 - `yazi` + `ya` — file manager; text files (Enter, `o`) open in kide. `PREFIX/bashrc`
   sets `YAZI_CONFIG_HOME` to the bundled config (`yazi/yazi.toml`, installed
@@ -489,6 +489,28 @@ gets one setting, see below):
   step to the next / previous match, and `Enter` opens `$EDITOR` (kide in
   fish) at the match line. Outside search results `n`, `b`, `Enter` and the
   preview behave as before.
+  `fgo` (fish) lists the file positions in the clipboard in yazi, with the
+  plugin `fgo-legacy` (`yazi/plugins/`, MIT, copied unchanged from
+  mikemoik/plugins-yazi commit `aca18ca`; `yazi/init.lua` loads it). Copy an
+  error dump (compiler errors, tracebacks, rg output) and run `fgo` in the
+  directory the paths are relative to. It finds `path:line[:col]`,
+  `path(line[,col])` and python's `File "path", line N`. A path that does not
+  exist as given is matched by its tail against the files below the current
+  directory. yazi then shows one row per position, in the order found, with
+  the preview at the line. `Enter` opens kide at the line and returns to the
+  list when kide quits, `Esc` leaves to the real file's directory. With no
+  positions, `fgo` just prints a message; `fgo -p` prints the list. In kide the
+  clipboard is **tmux's paste buffer** (`clip_paste` in `fish/functions/`):
+  select the text with a plain mouse drag in a tmux pane (no Shift). Text that
+  is only in the Windows clipboard gets there with `tmux load-buffer -`,
+  Shift+Insert, Ctrl+D.
+
+  Inside kide, yazi.nvim opens yazi in a float: `<leader>fy` at the current
+  file, `<leader>fY` at the root dir, `<leader>fz` resumes the last session
+  (`F1` = its help). A picked file opens as a buffer in the same kide, which
+  keeps its cwd; `q` closes the float. There is no zoxide in kide: yazi's
+  default `Z` is unbound (`noop` in `yazi/keymap.toml`); jump with `z` (fzf)
+  or by browsing.
 - `fzf` — fuzzy finder
 
 From packages, not built by kide (`install.sh` / the image install them):
@@ -629,7 +651,7 @@ off TLS checks instead.
 | `vendor/tools` | LSP servers, formatters, debugger (`manifest/tools.tsv`): ruff + ty, neocmakelsp, shfmt, debugpy, fzf, lazygit, yazi, yazi-prebuilt (the syntax repos for yazi's previews); Go tools carry their modules in their own `vendor/` |
 | `vendor/crates` | the Rust crates of each cargo tool (`cargo vendor --locked`), plus the cargo source config |
 | `config` | the nvim config (kreatos `home/nvim`, adapted, see below) |
-| `yazi` | the yazi config bundled with kide (text files open in kide), with the `search-jump-legacy` plugin in `yazi/plugins/` |
+| `yazi` | the yazi config bundled with kide (text files open in kide), with the `search-jump-legacy` and `fgo-legacy` plugins in `yazi/plugins/` (`init.lua` sets up fgo-legacy) |
 | `putty` | `kide.reg`: Windows PuTTY session with the kreatos colours ([PuTTY](#remote-kide-over-ssh-from-windows-putty)) |
 | `manifest/` | the pins; `parsers.lock.tsv` is generated from `parsers.txt`; `licenses.tsv` holds license facts the inventory cannot detect |
 | `VERSIONS` | every vendored component with upstream URL and commit/tag/sha256 |
@@ -894,6 +916,7 @@ license. Generated from `VERSIONS` by `scripts/gen-inventory.py` (run by
 | plugin/todo-comments.nvim | <https://github.com/folke/todo-comments.nvim> | `31e3c38ce9b2` | Apache-2.0 |
 | plugin/trouble.nvim | <https://github.com/folke/trouble.nvim> | `bd67efe408d4` | Apache-2.0 |
 | plugin/which-key.nvim | <https://github.com/folke/which-key.nvim> | `3aab2147e748` | Apache-2.0 |
+| plugin/yazi.nvim | <https://github.com/mikavilpas/yazi.nvim> | `d8bd4cc258fd` | MIT |
 | tool/debugpy | <https://pypi.org/project/debugpy> | `1.8.21` | MIT |
 | tool/fish | <https://github.com/fish-shell/fish-shell> | `4.9.3` | GPL-2.0 |
 | tool/fzf | <https://github.com/junegunn/fzf> | `v0.74.4` | MIT |

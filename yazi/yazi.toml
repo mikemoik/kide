@@ -8,6 +8,12 @@ edit = [
 	{ run = 'kide "$@"', desc = "kide", block = true, for = "unix" },
 ]
 
+# fgo-legacy (see init.lua): the position list fgo builds (numbered symlinks
+# in /tmp/fgo*); must come before search-jump-legacy's text/* rule.
+[[plugin.prepend_previewers]]
+url = "/tmp/fgo*/*"
+run = "fgo-legacy"
+
 # search-jump-legacy (plugins/, copied from mikemoik/plugins-yazi d71b73c, the
 # variant for yazi 26.1.22): in a content-search result list (`S`) the preview
 # opens at the first match, highlighted by bat. Outside search results it is

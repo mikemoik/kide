@@ -3,11 +3,18 @@
 # n / b / Enter: search-jump-legacy (see yazi.toml) in a content-search result
 # list (next / previous match, edit at the match with $EDITOR = kide);
 # elsewhere they stay find_arrow / find_arrow --previous / open.
+# Enter / Esc in fgo's position list (fgo-legacy, see init.lua): edit at the
+# position / leave to the real file's directory; elsewhere Enter goes on to
+# search-jump-legacy and Esc is the normal escape.
+# Z: no zoxide in kide, so yazi's default Z (plugin zoxide) is unbound with
+# noop; z (fzf) and browsing are the way to jump.
 [mgr]
 prepend_keymap = [
 	{ on = "Q", run = "quit",               desc = "Quit and cd the shell to the current directory" },
 	{ on = "q", run = "quit --no-cwd-file", desc = "Quit (no cd)" },
 	{ on = "n",       run = "plugin search-jump-legacy -- next", desc = "Next match in preview (search) / next found" },
 	{ on = "b",       run = "plugin search-jump-legacy -- prev", desc = "Previous match in preview (search) / previous found" },
-	{ on = "<Enter>", run = "plugin search-jump-legacy -- open", desc = "Edit at the shown match (search) / open" },
+	{ on = "<Enter>", run = "plugin fgo-legacy -- open --else=search-jump-legacy", desc = "Edit at the position (fgo list / search) / open" },
+	{ on = "<Esc>",   run = "plugin fgo-legacy -- leave", desc = "Leave the fgo list / escape" },
+	{ on = "Z",       run = "noop" },
 ]

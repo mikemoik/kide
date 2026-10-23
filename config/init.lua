@@ -32,6 +32,7 @@ for _, name in ipairs({
   "persistence.nvim",
   "plenary.nvim",
   "neo-tree.nvim",
+  "yazi.nvim",
   -- code
   "nvim-treesitter",
   "nvim-treesitter-textobjects",

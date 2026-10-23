@@ -1,5 +1,5 @@
 -- Editing and navigation: snacks pickers, which-key, flash, mini.ai/pairs,
--- trouble, todo-comments, grug-far, persistence, neo-tree, scratch buffers.
+-- trouble, todo-comments, grug-far, persistence, neo-tree, yazi, scratch buffers.
 local util = require("misw.util")
 local M = {}
 
@@ -485,10 +485,34 @@ local function neo_tree()
   map("n", "<leader>be", exec({ source = "buffers", toggle = true }), { desc = "Buffer Explorer" })
 end
 
+-- yazi in a float; picked files open in this nvim. Set up on first use.
+local with_yazi = util.on_first_use(function()
+  require("yazi").setup({ open_for_directories = false, keymaps = { show_help = "<f1>" } })
+end)
+
+local function yazi()
+  local function open(dir)
+    return with_yazi(function()
+      require("yazi").yazi(nil, dir and dir())
+    end)
+  end
+  map("n", "<leader>fy", open(), { desc = "Yazi (Current File)" })
+  map("n", "<leader>fY", open(util.root.get), { desc = "Yazi (Root Dir)" })
+  map(
+    "n",
+    "<leader>fz",
+    with_yazi(function()
+      require("yazi").toggle()
+    end),
+    { desc = "Yazi (Resume)" }
+  )
+end
+
 -- runs during init.lua
 function M.setup()
   pickers()
   neo_tree()
+  yazi()
   local arg = vim.fn.argv(0) --[[@as string]]
   local stat = arg ~= "" and vim.uv.fs_stat(arg)
   if stat and stat.type == "directory" then

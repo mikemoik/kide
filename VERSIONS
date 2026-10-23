@@ -1654,6 +1654,7 @@ plugin/snacks.nvim           https://github.com/folke/snacks.nvim               
 plugin/todo-comments.nvim    https://github.com/folke/todo-comments.nvim                  31e3c38ce9b29781e4422fc0322eb0a21f4e8668
 plugin/trouble.nvim          https://github.com/folke/trouble.nvim                        bd67efe408d4816e25e8491cc5ad4088e708a69a
 plugin/which-key.nvim        https://github.com/folke/which-key.nvim                      3aab2147e74890957785941f0c1ad87d0a44c15a
+plugin/yazi.nvim             https://github.com/mikavilpas/yazi.nvim                      d8bd4cc258fdbe2bad71a383d390a96c80ecb628
 tool/debugpy                 https://pypi.org/project/debugpy                             1.8.21
 tool/fish                    https://github.com/fish-shell/fish-shell                     4.9.3
 tool/fzf                     https://github.com/junegunn/fzf                              v0.74.4

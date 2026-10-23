@@ -239,6 +239,21 @@ local function run()
   local picked = vim.fn.system({ "fzf", "--filter", "cstdb" }, "customer_db.cpp\nreport.cpp\n")
   check("fzf filters", vim.trim(picked) == "customer_db.cpp", picked)
 
+  -- yazi.nvim: the keymaps are registered and :checkhealth yazi passes
+  for _, lhs in ipairs({ "<leader>fy", "<leader>fY", "<leader>fz" }) do
+    check("keymap " .. lhs, vim.fn.maparg(lhs, "n") ~= "")
+  end
+  vim.cmd("checkhealth yazi")
+  local health = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+  check("checkhealth yazi", health:find("OK", 1, true) ~= nil and not health:find("ERROR", 1, true)
+    and not health:find("WARNING", 1, true), health)
+  vim.cmd("bwipeout!")
+  -- no zoxide in kide: not a tool, and yazi's default Z (plugin zoxide) is unbound
+  local tools = table.concat(vim.fn.readfile(src .. "/manifest/tools.tsv"), "\n")
+  check("no zoxide in tools.tsv", not tools:find("zoxide", 1, true))
+  local ykeys = table.concat(vim.fn.readfile(src .. "/yazi/keymap.toml"), "\n")
+  check("yazi Z unbound", ykeys:find('on = "Z",%s*run = "noop"') ~= nil)
+
   -- snacks writes lazygit's theme into the cache dir (<leader>gg); kide creates it
   check("cache dir exists", vim.fn.isdirectory(vim.fn.stdpath("cache")) == 1, vim.fn.stdpath("cache"))
   -- no spell checking, no spell file download prompt

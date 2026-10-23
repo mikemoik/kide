@@ -1,0 +1,104 @@
+local M = {}
+
+M.is_setup_done = false
+
+---@param yazi_augroup integer
+function M.hijack_netrw(yazi_augroup)
+  if M.is_setup_done then
+    return
+  end
+
+  local Log = require("yazi.log")
+
+  ---@param file string
+  ---@param bufnr number
+  local function open_yazi_in_directory(file, bufnr)
+    if vim.fn.isdirectory(file) ~= 1 then
+      return
+    end
+
+    -- don't hijack if using a protocol that netrw should handle (e.g. scp, ftp)
+    if string.find(vim.api.nvim_buf_get_name(bufnr), "://") then
+      return
+    end
+
+    local winid = vim.api.nvim_get_current_win()
+    local dir_bufnr = vim.api.nvim_get_current_buf()
+
+    -- A buffer was opened for a directory.
+    -- Remove the buffer as we want to show yazi instead
+    local empty_buffer = vim.api.nvim_create_buf(true, false)
+    local next_buffer = vim.fn.bufnr("#") or empty_buffer
+    Log:debug(
+      string.format(
+        "Removing buffer %s for directory %s and replacing it with the next buffer %s",
+        dir_bufnr,
+        file,
+        next_buffer
+      )
+    )
+
+    vim.schedule(function()
+      Log:debug(
+        string.format("Deleting buffer %s for directory %s", dir_bufnr, file)
+      )
+
+      pcall(function()
+        vim.api.nvim_win_set_buf(winid, next_buffer)
+        Log:debug(
+          string.format("Set buffer %s for window %s", next_buffer, winid)
+        )
+      end)
+
+      local deletion_successful = false
+      -- check to see if bufnr exists before deleting
+      if vim.api.nvim_buf_is_valid(bufnr) then
+        deletion_successful =
+          pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
+      end
+      if
+        next_buffer ~= empty_buffer and vim.api.nvim_buf_is_valid(empty_buffer)
+      then
+        vim.api.nvim_buf_delete(empty_buffer, { force = true })
+      end
+      if deletion_successful then
+        Log:debug(
+          string.format("Deleted buffer %s for directory %s", bufnr, file)
+        )
+
+        Log:debug(string.format("Opening yazi for directory %s", file))
+        require("yazi").yazi(M.config, file)
+      end
+    end)
+  end
+
+  -- disable netrw, the built-in file explorer
+  vim.cmd("silent! autocmd! FileExplorer *")
+
+  -- executed before starting to edit a new buffer.
+  vim.api.nvim_create_autocmd("BufAdd", {
+    pattern = "*",
+    ---@param ev yazi.AutoCmdEvent
+    callback = function(ev)
+      if vim.g.SessionLoad == 1 then
+        -- Fix https://github.com/mikavilpas/yazi.nvim/issues/440
+        -- See `:h SessionLoad-variable`
+        return
+      end
+      open_yazi_in_directory(ev.file, ev.buf)
+    end,
+    group = yazi_augroup,
+  })
+
+  -- When opening neovim with "nvim ." or "nvim <directory>", the current
+  -- buffer is already open at this point. If we have already opened a
+  -- directory, display yazi instead.
+  open_yazi_in_directory(
+    vim.b.netrw_curdir or vim.fn.expand("%:p"),
+    vim.api.nvim_get_current_buf()
+  )
+
+  M.is_setup_done = true
+end
+
+return M
