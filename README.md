@@ -284,9 +284,10 @@ that session; host, port and other settings stay. Not tested on Windows yet.
 
    - `-e TERM` hands PuTTY's `xterm-256color` to the container (podman would
      set plain `xterm`).
-   - `-e SSH_CONNECTION` tells kide it runs over SSH, so yanks go to the
-     terminal by OSC 52 instead of a clipboard tool the container does not
-     have (without it every yank shows `clipboard: No provider`).
+   - `-e SSH_CONNECTION` tells kide it runs over SSH, so yanks stay inside
+     kide and only `Y` copies to the terminal by OSC 52, instead of trying to
+     reach a clipboard the container does not have (without it every yank
+     shows `clipboard: No provider`).
 
    As an alias in `~/.bashrc` on the RHEL box:
 
@@ -304,7 +305,7 @@ that session; host, port and other settings stay. Not tested on Windows yet.
   session from `putty/kide.reg` has it on: `"CtrlShiftCV"="explicit"`).
 - **Copy to Windows**: Shift + drag selects text in PuTTY, which copies it to
   the Windows clipboard right away (Ctrl+Shift+C copies the selection again).
-  kide's own yank (`y`) does not reach Windows: PuTTY does not support
+  kide's clipboard yank (`Y`) does not reach Windows: PuTTY does not support
   OSC 52.
 - **Paste from Windows**: Ctrl+Shift+V, Shift + right-click or Shift + Insert.
   It arrives as a bracketed paste, so the text is inserted as is (no
@@ -318,8 +319,9 @@ that session; host, port and other settings stay. Not tested on Windows yet.
 
 Same session as `putty/kide.reg` (colours, font, keepalive, the container as
 remote command), but Windows Terminal supports OSC 52: yazi's `cc`, `ffex` and
-kide's yanks (`y`, `d`, …) copy to the Windows clipboard; `p` in kide pastes
-kide's last yank, Ctrl+Shift+V pastes from Windows. Inside tmux this works through
+kide's `Y` (the line, or the visual selection) copy to the Windows clipboard;
+plain `y`, `d`, `p` stay inside kide (`Y` replaces Neovim's `Y` = `y$`), and
+Ctrl+Shift+V pastes from Windows. Inside tmux this works through
 `set -g set-clipboard on` in the image's `/etc/tmux.conf` (an older image: put
 the line into `~/workspace/.container/tmux.conf`).
 Selecting with Shift + drag copies only on Ctrl+Shift+C or Enter, unless

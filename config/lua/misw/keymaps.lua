@@ -35,6 +35,11 @@ map("i", "<A-k>", "<esc><cmd>m .-2<cr>==gi", { desc = "Move Up" })
 map("v", "<A-j>", ":<C-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv", { desc = "Move Down" })
 map("v", "<A-k>", ":<C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", { desc = "Move Up" })
 
+-- yank to the system clipboard (over SSH: the terminal's, by OSC 52, see
+-- init.lua); replaces Y = y$
+map("n", "Y", '"+yy', { desc = "Yank Line to Clipboard" })
+map("x", "Y", '"+y', { desc = "Yank Selection to Clipboard" })
+
 -- buffers (H/L, [b/]b, [B/]B are bufferline's, see ui.lua)
 map("n", "<leader>bb", "<cmd>e #<cr>", { desc = "Switch to Other Buffer" })
 map("n", "<leader>`", "<cmd>e #<cr>", { desc = "Switch to Other Buffer" })

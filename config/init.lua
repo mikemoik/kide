@@ -74,10 +74,11 @@ require("misw.git").setup()
 
 -- after the UI is up
 util.later(function()
-  -- over SSH there is no clipboard tool: yanks go to the terminal by OSC 52
+  -- over SSH there is no clipboard tool: yanks stay inside kide, and the
+  -- "+ / "* registers (Y, see keymaps.lua) go to the terminal by OSC 52
   -- (Windows Terminal, WezTerm; PuTTY ignores it). The terminal does not
-  -- answer OSC 52 reads, so p pastes the last yank (kept here); paste from
-  -- the terminal with Ctrl+Shift+V.
+  -- answer OSC 52 reads, so "+p pastes the last "+ yank (kept here); paste
+  -- from the terminal with Ctrl+Shift+V.
   if vim.env.SSH_CONNECTION then
     local osc52 = require("vim.ui.clipboard.osc52")
     local last = { {}, "v" }
@@ -97,7 +98,7 @@ util.later(function()
       paste = { ["+"] = paste, ["*"] = paste },
     }
   end
-  vim.opt.clipboard = "unnamedplus"
+  vim.opt.clipboard = vim.env.SSH_CONNECTION and "" or "unnamedplus"
   require("misw.editor").later() -- trouble.setup() before lualine's trouble.statusline()
   require("misw.ui").later()
   require("misw.dap").setup()
