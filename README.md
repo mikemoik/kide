@@ -191,7 +191,7 @@ By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
   version. kide's hook keeps the fish and bash history (Ctrl-R) in
   `~/workspace/.container/kide/` (`fish_history`, `bash_history`). Likewise tmux reads
   `~/workspace/.container/tmux.conf` last, if it exists, after the image's
-  `/etc/tmux.conf` (mouse on), and git reads
+  `/etc/tmux.conf` (mouse on, set-clipboard on), and git reads
   `~/workspace/.container/.gitconfig` (your `[user] name`/`email`, …), if it
   exists, via an include in the image's `/etc/gitconfig`; a global config
   (`start.sh`'s mounted `~/.gitconfig`) overrides the same keys.
@@ -319,8 +319,9 @@ that session; host, port and other settings stay. Not tested on Windows yet.
 Same session as `putty/kide.reg` (colours, font, keepalive, the container as
 remote command), but Windows Terminal supports OSC 52: yazi's `cc`, `ffex` and
 kide's yanks (`y`, `d`, …) copy to the Windows clipboard; `p` in kide pastes
-kide's last yank, Ctrl+Shift+V pastes from Windows. Inside tmux this also needs
-`set -g set-clipboard on` (e.g. in `~/workspace/.container/tmux.conf`).
+kide's last yank, Ctrl+Shift+V pastes from Windows. Inside tmux this works through
+`set -g set-clipboard on` in the image's `/etc/tmux.conf` (an older image: put
+the line into `~/workspace/.container/tmux.conf`).
 Selecting with Shift + drag copies only on Ctrl+Shift+C or Enter, unless
 `"copyOnSelect": true` is set (top level of `settings.json`).
 

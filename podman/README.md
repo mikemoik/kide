@@ -130,7 +130,7 @@ By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
   `~/workspace/.container/` ([Shell hooks](#shell-hooks-workspacecontainer)).
   Likewise tmux reads
   `~/workspace/.container/tmux.conf` last, if it exists, after the image's
-  `/etc/tmux.conf` (mouse on).
+  `/etc/tmux.conf` (mouse on, set-clipboard on).
 - `-v kide-data:/var/lib/kide`: kide's data and state (undo history, shada,
   swap files, sessions) survive the container. Leave it out for
   a throwaway session. The image points `XDG_DATA_HOME`/`XDG_STATE_HOME` there
