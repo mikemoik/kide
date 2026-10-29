@@ -314,6 +314,26 @@ that session; host, port and other settings stay. Not tested on Windows yet.
 - Only the mounted project directory is visible inside the container (see
   [podman/README.md](podman/README.md) § Limits).
 
+#### Windows Terminal instead of PuTTY (`windows-terminal/kide.json`)
+
+Same session as `putty/kide.reg` (colours, font, keepalive, the container as
+remote command), but Windows Terminal supports OSC 52: yazi's `cc`, `ffex` and
+nvim's `"+y` copy to the Windows clipboard. Inside tmux this also needs
+`set -g set-clipboard on` (e.g. in `~/workspace/.container/tmux.conf`).
+
+1. Font as for PuTTY (step 1 above).
+2. Windows Terminal → Settings → *Open JSON file*; merge the three parts of
+   `windows-terminal/kide.json` (`schemes`, `profiles.list`, `actions`) into
+   the lists of the same name, and replace `USER@RHEL-HOST`.
+3. SSH key: Windows' `ssh.exe` reads OpenSSH keys from `%USERPROFILE%\.ssh\`,
+   not `.ppk`; export a PuTTY key once with PuTTYgen → *Conversions → Export
+   OpenSSH key*.
+
+Differences from PuTTY: Ctrl+C / Ctrl+V are unbound in every tab (copy and
+paste are Ctrl+Shift+C / Ctrl+Shift+V), and Windows Terminal keeps some keys
+for itself (Ctrl+Shift+T/W/F/P/D, Alt+Shift+±, Alt+arrows, Alt+Enter). Shift +
+drag still selects. Not tested on Windows yet.
+
 ### Persistent kide (survives SSH logout)
 
 If the RHEL box kills a user's processes at logout (systemd-logind
@@ -651,6 +671,7 @@ off TLS checks instead.
 | `config` | the nvim config (kreatos `home/nvim`, adapted, see below) |
 | `yazi` | the yazi config bundled with kide (text files open in kide), with the `search-jump-legacy` and `fgo-legacy` plugins in `yazi/plugins/` (`init.lua` sets up fgo-legacy) |
 | `putty` | `kide.reg`: Windows PuTTY session with the kreatos colours ([PuTTY](#remote-kide-over-ssh-from-windows-putty)) |
+| `windows-terminal` | `kide.json`: the same session as a Windows Terminal profile, with OSC 52 clipboard ([Windows Terminal](#windows-terminal-instead-of-putty-windows-terminalkidejson)) |
 | `manifest/` | the pins; `parsers.lock.tsv` is generated from `parsers.txt`; `licenses.tsv` holds license facts the inventory cannot detect |
 | `VERSIONS` | every vendored component with upstream URL and commit/tag/sha256 |
 

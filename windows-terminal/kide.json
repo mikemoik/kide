@@ -1,0 +1,59 @@
+// Windows Terminal profile "kide": the PuTTY session putty/kide.reg, plus
+// OSC 52 (yazi `cc`, ffex, nvim "+y reach the Windows clipboard).
+// Not a complete settings.json: merge the three parts into yours
+// (Settings -> Open JSON file), each into the list of the same name.
+// Replace USER@RHEL-HOST with your login on the RHEL box.
+{
+    // into "schemes": the kreatos ethereal colours (kreatos theme ghostty.conf)
+    "schemes": [
+        {
+            "name": "kreatos ethereal",
+            "background": "#060B1E",
+            "foreground": "#FFCEAD",
+            "cursorColor": "#FFCEAD",
+            "selectionBackground": "#FFCEAD",
+            "black": "#060B1E",
+            "red": "#ED5B5A",
+            "green": "#92A593",
+            "yellow": "#E9BB4F",
+            "blue": "#7D82D9",
+            "purple": "#C89DC1",
+            "cyan": "#A3BFD1",
+            "white": "#F99957",
+            "brightBlack": "#6D7DB6",
+            "brightRed": "#FAAAA9",
+            "brightGreen": "#C4CFC4",
+            "brightYellow": "#F7DC9C",
+            "brightBlue": "#C2C4F0",
+            "brightPurple": "#EAD7E7",
+            "brightCyan": "#DFEAF0",
+            "brightWhite": "#FFCEAD"
+        }
+    ],
+
+    // into "profiles" -> "list": ssh (Windows' OpenSSH, TERM xterm-256color)
+    // with a 30 s keepalive, starting the kide container like PuTTY's remote
+    // command. No quotes around $HOME/workspace: Windows passes it as is and
+    // the remote shell expands it.
+    "profiles": {
+        "list": [
+            {
+                "guid": "{1a37f84a-5d4e-4518-9e95-1478df25ca4c}",
+                "name": "kide",
+                "commandline": "ssh.exe -t -o ServerAliveInterval=30 USER@RHEL-HOST podman run --rm -it --http-proxy=false -e TERM -e SSH_CONNECTION --userns=keep-id:uid=1001,gid=1001 -v $HOME/workspace:/workspace:Z -v kide-data:/var/lib/kide kide",
+                "colorScheme": "kreatos ethereal",
+                "font": { "face": "JetBrainsMono Nerd Font Mono", "size": 10 },
+                "closeOnExit": "graceful"
+            }
+        ]
+    },
+
+    // into "actions" (older versions) or "keybindings" (1.21+, either works):
+    // Ctrl+C / Ctrl+V go to the program (nvim visual block, interrupt), copy
+    // and paste stay on Ctrl+Shift+C / Ctrl+Shift+V like the PuTTY session.
+    // These are global: they apply to every Windows Terminal tab.
+    "actions": [
+        { "command": "unbound", "keys": "ctrl+c" },
+        { "command": "unbound", "keys": "ctrl+v" }
+    ]
+}
