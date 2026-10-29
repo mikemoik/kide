@@ -284,9 +284,9 @@ that session; host, port and other settings stay. Not tested on Windows yet.
 
    - `-e TERM` hands PuTTY's `xterm-256color` to the container (podman would
      set plain `xterm`).
-   - `-e SSH_CONNECTION` tells kide it runs over SSH, so yanks stay inside
-     kide instead of trying to reach a clipboard the container does not have
-     (without it every yank shows `clipboard: No provider`).
+   - `-e SSH_CONNECTION` tells kide it runs over SSH, so yanks go to the
+     terminal by OSC 52 instead of a clipboard tool the container does not
+     have (without it every yank shows `clipboard: No provider`).
 
    As an alias in `~/.bashrc` on the RHEL box:
 
@@ -318,8 +318,11 @@ that session; host, port and other settings stay. Not tested on Windows yet.
 
 Same session as `putty/kide.reg` (colours, font, keepalive, the container as
 remote command), but Windows Terminal supports OSC 52: yazi's `cc`, `ffex` and
-nvim's `"+y` copy to the Windows clipboard. Inside tmux this also needs
+kide's yanks (`y`, `d`, …) copy to the Windows clipboard; `p` in kide pastes
+kide's last yank, Ctrl+Shift+V pastes from Windows. Inside tmux this also needs
 `set -g set-clipboard on` (e.g. in `~/workspace/.container/tmux.conf`).
+Selecting with Shift + drag copies only on Ctrl+Shift+C or Enter, unless
+`"copyOnSelect": true` is set (top level of `settings.json`).
 
 1. Font as for PuTTY (step 1 above).
 2. Windows Terminal → Settings → *Open JSON file*; merge the three parts of
