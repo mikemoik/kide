@@ -9,13 +9,13 @@
 # The base image and its repo setup are not in this file: podman/base.conf
 # (BASE=…, default Rocky Linux 9; CONF_DIR=…, default podman/conf with
 # repos.sh (default: CRB + EPEL, standing in for the RHEL9 target's own dnf
-# repos), ubi.repo; KIDE_USER/KIDE_UID/KIDE_GID, the
+# repos), ubi.repo; IBNDEV_USER/IBNDEV_UID/IBNDEV_GID, the
 # user the image runs as). Replace those for another base; this file stays as
 # it is.
 # Without a checkout, straight from GitHub (the default base, no arg file):
-#   podman build --build-arg BASE=docker.io/rockylinux/rockylinux:9 --build-arg CONF_DIR=podman/conf --build-arg KIDE_USER=default --build-arg KIDE_UID=1001 --build-arg KIDE_GID=1001 -t kide -f podman/Containerfile.kide https://github.com/kreatos/kide.git
+#   podman build --build-arg BASE=docker.io/rockylinux/rockylinux:9 --build-arg CONF_DIR=podman/conf --build-arg IBNDEV_USER=default --build-arg IBNDEV_UID=1001 --build-arg IBNDEV_GID=1001 -t kide -f podman/Containerfile.kide https://github.com/kreatos/kide.git
 # Every step that installs or writes system files runs as root (USER root, also
-# when the base image defaults to another user); the image runs as KIDE_USER.
+# when the base image defaults to another user); the image runs as IBNDEV_USER.
 # Start it with podman/start.sh [FILE…], which runs rootless podman,
 # mapping you on the host to that user, so files in the mounted ~/workspace
 # stay yours. It starts fish (with the IDE's aliases from fish/); `kide` opens
@@ -59,7 +59,7 @@ USER root
 # C/C++ tools kide uses from RHEL (clangd/clang-format/clang-tidy, gdb,
 # lldb-dap), tmux, fd-find + ripgrep + bat from EPEL (fd: snacks file pickers;
 # rg: grepprg, snacks grep pickers; bat: syntax-highlighted cat), shadow-utils (useradd/usermod) for
-# KIDE_USER below.
+# IBNDEV_USER below.
 ARG CONF_DIR
 COPY $CONF_DIR/ubi.repo /etc/yum.repos.d/ubi.repo
 COPY $CONF_DIR/repos.sh /tmp/repos.sh
@@ -85,7 +85,7 @@ RUN printf '%s\n' 'set -g mouse on' 'set -g set-clipboard on' 'source-file -q /w
 ENV PATH=/opt/kide/bin:$PATH \
     YAZI_CONFIG_HOME=/opt/kide/share/kreatos-ide/yazi
 # fish is the default shell: $SHELL (nvim's :terminal and terminal windows,
-# lazygit, yazi), the login shell of KIDE_USER and root, and the command the
+# lazygit, yazi), the login shell of IBNDEV_USER and root, and the command the
 # container starts (CMD below). bash stays as a fallback (podman run … kide bash).
 ENV SHELL=/opt/kide/bin/fish
 RUN set -e; \
@@ -106,27 +106,27 @@ RUN set -e; \
 COPY container-shell /usr/local/share/container-shell
 # kide's data and state (nvim undo/shada/swap, fish history, lazygit and yazi
 # state) live under /var/lib/kide instead of ~/.local, so the kide-data volume
-# has the same mount point whatever KIDE_USER's home is.
+# has the same mount point whatever IBNDEV_USER's home is.
 ENV XDG_DATA_HOME=/var/lib/kide/share \
     XDG_STATE_HOME=/var/lib/kide/state
-# KIDE_USER (podman/base.conf): the user the image runs as. Taken from the base
+# IBNDEV_USER (podman/base.conf): the user the image runs as. Taken from the base
 # image if it has it (e.g. "default" in Red Hat's application images),
-# otherwise created with KIDE_UID/KIDE_GID. Gets fish as login shell, owns
+# otherwise created with IBNDEV_UID/IBNDEV_GID. Gets fish as login shell, owns
 # /var/lib/kide. Its and root's ~/.bashrc and fish config get the loader line,
 # once each (a base image may have added it already).
-# /workspace is the WORKDIR, a plain directory owned by KIDE_USER: the mount
+# /workspace is the WORKDIR, a plain directory owned by IBNDEV_USER: the mount
 # point for the host's ~/workspace (podman run -v "$HOME/workspace:/workspace:Z").
-ARG KIDE_USER
-ARG KIDE_UID
-ARG KIDE_GID
+ARG IBNDEV_USER
+ARG IBNDEV_UID
+ARG IBNDEV_GID
 RUN set -e; \
-    if ! id -u "$KIDE_USER" >/dev/null 2>&1; then \
-      getent group "$KIDE_GID" >/dev/null || groupadd -g "$KIDE_GID" "$KIDE_USER"; \
-      useradd -m -u "$KIDE_UID" -g "$KIDE_GID" "$KIDE_USER"; \
+    if ! id -u "$IBNDEV_USER" >/dev/null 2>&1; then \
+      getent group "$IBNDEV_GID" >/dev/null || groupadd -g "$IBNDEV_GID" "$IBNDEV_USER"; \
+      useradd -m -u "$IBNDEV_UID" -g "$IBNDEV_GID" "$IBNDEV_USER"; \
     fi; \
-    usermod -s /opt/kide/bin/fish "$KIDE_USER"; \
-    home=$(getent passwd "$KIDE_USER" | cut -d: -f6); \
-    group=$(id -g "$KIDE_USER"); \
+    usermod -s /opt/kide/bin/fish "$IBNDEV_USER"; \
+    home=$(getent passwd "$IBNDEV_USER" | cut -d: -f6); \
+    group=$(id -g "$IBNDEV_USER"); \
     for h in "$home" /root; do \
       mkdir -p "$h/.config/fish"; \
       line='. /usr/local/share/container-shell/load.sh'; \
@@ -135,9 +135,9 @@ RUN set -e; \
       grep -qxF -- "$line" "$h/.config/fish/config.fish" 2>/dev/null || printf '%s\n' "$line" >>"$h/.config/fish/config.fish"; \
     done; \
     mkdir -p /var/lib/kide/share /var/lib/kide/state /workspace; \
-    chown "$KIDE_USER:$group" "$home" "$home/.bashrc"; \
-    chown -R "$KIDE_USER:$group" "$home/.config" /workspace /var/lib/kide
-USER $KIDE_USER
+    chown "$IBNDEV_USER:$group" "$home" "$home/.bashrc"; \
+    chown -R "$IBNDEV_USER:$group" "$home/.config" /workspace /var/lib/kide
+USER $IBNDEV_USER
 WORKDIR /workspace
 # fish, not kide: the IDE is started from it (`kide`), so nvim and everything
 # it runs (builds, tests, the debugger) get the hooks' environment. A base's

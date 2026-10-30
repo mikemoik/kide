@@ -6,7 +6,7 @@
 #
 # The host's ~/workspace (created if missing) is mounted on the container's
 # WORKDIR /workspace; FILE arguments are relative to it. Run as your normal user (rootless podman, not sudo): your
-# host user is mapped to the image's user (KIDE_UID/KIDE_GID from
+# host user is mapped to the image's user (IBNDEV_UID/IBNDEV_GID from
 # podman/base.conf next to this script, default 1001), so files written in
 # ~/workspace stay yours. kide's data and state are kept in the volume
 # kide-data. TERM and SSH_CONNECTION are passed on when set (PuTTY/SSH); the
@@ -18,12 +18,12 @@
 # ~/.gitconfig go in read-only.
 set -euo pipefail
 
-KIDE_UID=1001
-KIDE_GID=1001
+IBNDEV_UID=1001
+IBNDEV_GID=1001
 conf="$(dirname "$(readlink -f "$0")")/base.conf"
 if [ -f "$conf" ]; then
-    KIDE_UID=$(sed -n 's/^KIDE_UID=//p' "$conf")
-    KIDE_GID=$(sed -n 's/^KIDE_GID=//p' "$conf")
+    IBNDEV_UID=$(sed -n 's/^IBNDEV_UID=//p' "$conf")
+    IBNDEV_GID=$(sed -n 's/^IBNDEV_GID=//p' "$conf")
 fi
 
 # no agent yet: rerun this script under one (it ends with the session)
@@ -35,7 +35,7 @@ cmd=()
 
 mkdir -p "$HOME/workspace"
 exec podman run --rm -it --http-proxy=false -e TERM -e SSH_CONNECTION \
-    --userns="keep-id:uid=$KIDE_UID,gid=$KIDE_GID" \
+    --userns="keep-id:uid=$IBNDEV_UID,gid=$IBNDEV_GID" \
     --security-opt label=disable \
     -v "$SSH_AUTH_SOCK:/run/ssh-agent.sock" -e SSH_AUTH_SOCK=/run/ssh-agent.sock \
     -v "$HOME/.ssh/known_hosts:/etc/ssh/ssh_known_hosts:ro" \

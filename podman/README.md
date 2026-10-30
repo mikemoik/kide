@@ -29,7 +29,7 @@ tarball or a git checkout, run it in the repo's top directory (where
 
 Without a checkout, straight from GitHub (no curl needed):
 
-    podman build --build-arg BASE=docker.io/rockylinux/rockylinux:9 --build-arg CONF_DIR=podman/conf --build-arg KIDE_USER=default --build-arg KIDE_UID=1001 --build-arg KIDE_GID=1001 -t kide -f podman/Containerfile.kide https://github.com/kreatos/kide.git
+    podman build --build-arg BASE=docker.io/rockylinux/rockylinux:9 --build-arg CONF_DIR=podman/conf --build-arg IBNDEV_USER=default --build-arg IBNDEV_UID=1001 --build-arg IBNDEV_GID=1001 -t kide -f podman/Containerfile.kide https://github.com/kreatos/kide.git
 
 The build stage has two layers, each reused until its inputs change:
 
@@ -54,7 +54,7 @@ nothing of ibn-dev: both images ship their shell config as hooks
 bash. A change to ibn-dev
 rebuilds kide on top of it too (the whole IDE compile, ~40 min).
 
-Keep `KIDE_USER`/`KIDE_UID`/`KIDE_GID` in `podman/base.conf` the same as in
+Keep `IBNDEV_USER`/`IBNDEV_UID`/`IBNDEV_GID` in `podman/base.conf` the same as in
 ibn-dev's: kide reuses the user ibn-dev created and makes fish its login
 shell.
 
@@ -78,15 +78,15 @@ for another base (e.g. a company RHEL9 image with its own dnf repos):
   repos). Replace it with whatever the base needs so dnf finds every package
   the Containerfile installs (e.g. copying `.repo` files into
   `/etc/yum.repos.d/`), or with an empty script if the base is ready as is.
-- `KIDE_USER`, `KIDE_UID`, `KIDE_GID` in `podman/base.conf` (default
+- `IBNDEV_USER`, `IBNDEV_UID`, `IBNDEV_GID` in `podman/base.conf` (default
   `default`, 1001, 1001): the user the image runs as. Every step that
   installs or writes system files runs as root (`USER root` at the start of
   every stage, also when the base image defaults to another user); the last
-  step switches to `KIDE_USER`. A base image that already has that user
+  step switches to `IBNDEV_USER`. A base image that already has that user
   (e.g. `default` in Red Hat's application images, or ibn-dev) keeps it; set
-  `KIDE_UID`/`KIDE_GID` to its uid/gid then (`podman run --rm <base> id default`).
+  `IBNDEV_UID`/`IBNDEV_GID` to its uid/gid then (`podman run --rm <base> id default`).
   Otherwise it is created with them. The run commands below map you to it
-  with `--userns=keep-id:uid=<KIDE_UID>,gid=<KIDE_GID>`: change the numbers
+  with `--userns=keep-id:uid=<IBNDEV_UID>,gid=<IBNDEV_GID>`: change the numbers
   there too if you change them here.
 
 The `dnf install` steps need those repos; `build-ide.sh` itself never touches
@@ -136,7 +136,7 @@ By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
   a throwaway session. The image points `XDG_DATA_HOME`/`XDG_STATE_HOME` there
   instead of `~/.local`, so the mount point does not depend on the user's
   home.
-- `--userns=keep-id:uid=1001,gid=1001`: the container runs as `KIDE_USER`
+- `--userns=keep-id:uid=1001,gid=1001`: the container runs as `IBNDEV_USER`
   (`default`, uid/gid 1001), not root. With **rootless** podman (your normal
   user, not `sudo podman`) this maps your host user to it, so it can write
   the project and the files it writes stay yours (podman 4.3 or newer).
@@ -193,7 +193,7 @@ the mounted workspace, then sources every file there in name order:
 ## Shell: fish
 
 fish is the container's default shell: `$SHELL` and the login shell of
-`KIDE_USER` and root, so
+`IBNDEV_USER` and root, so
 terminals opened in kide (`:terminal`, the terminal window) and shells started
 from lazygit or yazi are fish too. It is built from source by `build-ide.sh`, like the other tools
 (a normal install gets `PREFIX/bin/fish` too; its login shell stays bash).
