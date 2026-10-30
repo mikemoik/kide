@@ -182,6 +182,7 @@ map({ "n", "x" }, "<leader>gY", function()
 end, { desc = "Git Browse (copy)" })
 
 map("n", "<leader>qq", "<cmd>qa<cr>", { desc = "Quit All" })
+map("n", "Q", "<cmd>q!<cr>", { desc = "Quit Without Saving" })
 
 -- inspect
 map("n", "<leader>ui", vim.show_pos, { desc = "Inspect Pos" })
