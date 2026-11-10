@@ -1,8 +1,10 @@
 # GitHub Release for a pushed tag v<version> (e.g. v0.1.0), created here in CI
 # with the workflow's own token: releasing needs only `git push origin <tag>`.
 # Notes: release-notes/<tag>.md at the tagged commit; missing -> the commit
-# subjects since the previous v* tag. The source tarball is GitHub's automatic
-# "Source code (tar.gz)" (offline install), nothing is built here.
+# subjects since the previous v* tag. Assets: kide-<version>.tar.gz (git
+# archive of the tagged commit, unpacks to kide-<version>/; the offline install
+# tarball) + its .sha256. A release that already exists (tag moved) gets its
+# notes and assets replaced.
 name: release
 
 on:
@@ -34,4 +36,13 @@ jobs:
               git log --format='- %s (%h)' ${prev:+$prev..}"$tag"
             } > "$notes"
           fi
-          gh release create "$tag" --title "kide ${tag#v}" --notes-file "$notes" --verify-tag
+          version="${tag#v}"
+          mkdir -p out
+          git archive --format=tar.gz --prefix="kide-$version/" -o "out/kide-$version.tar.gz" "$tag"
+          (cd out && sha256sum "kide-$version.tar.gz" > "kide-$version.tar.gz.sha256")
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" --title "kide $version" --notes-file "$notes"
+            gh release upload "$tag" out/* --clobber
+          else
+            gh release create "$tag" out/* --title "kide $version" --notes-file "$notes" --verify-tag
+          fi

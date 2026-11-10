@@ -83,6 +83,10 @@ from somewhere.
 
        curl -fLo kide-main.tar.gz https://gitlab.com/kreatos/kide/-/archive/main/kide-main.tar.gz
 
+   Or a release: `kide-<version>.tar.gz` from the release page (GitHub:
+   *Releases*), checked with the `.sha256` next to it
+   (`sha256sum -c kide-<version>.tar.gz.sha256`); it unpacks to `kide-<version>/`.
+
 2. Copy it to the RHEL9 box (USB stick, `scp`, …).
 3. RHEL packages: `install.sh` installs the missing ones with `dnf`, which
    needs a reachable repo — on an offline box the company mirror/Satellite or
@@ -794,8 +798,10 @@ even in CRB), so every crate the build needs is in `vendor/crates` as source.
 2. `git tag -a v<version> -m "kide <version>"` and `git push origin v<version>`.
 
 The GitHub Action `.github/workflows/release.yml` then creates the release
-"kide <version>" with those notes; its *Source code (tar.gz)* is the offline
-install tarball. No GitHub login needed locally, only the push.
+"kide <version>" with those notes and the assets `kide-<version>.tar.gz`
+(`git archive` of the tag, the offline install tarball) + `.sha256`. No
+GitHub login needed locally, only the push. Re-pushing a moved tag replaces
+the notes and assets of the existing release.
 
 ## Updating the pins (on a connected machine)
 
