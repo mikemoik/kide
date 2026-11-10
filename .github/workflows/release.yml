@@ -4,7 +4,8 @@
 # subjects since the previous v* tag. Assets: kide-<version>.tar.gz (git
 # archive of the tagged commit, unpacks to kide-<version>/; the offline install
 # tarball) + its .sha256. A release that already exists (tag moved) gets its
-# notes and assets replaced.
+# notes and assets replaced and is published again (deleting its tag turned it
+# into a draft).
 name: release
 
 on:
@@ -41,7 +42,7 @@ jobs:
           git archive --format=tar.gz --prefix="kide-$version/" -o "out/kide-$version.tar.gz" "$tag"
           (cd out && sha256sum "kide-$version.tar.gz" > "kide-$version.tar.gz.sha256")
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release edit "$tag" --title "kide $version" --notes-file "$notes"
+            gh release edit "$tag" --title "kide $version" --notes-file "$notes" --draft=false
             gh release upload "$tag" out/* --clobber
           else
             gh release create "$tag" out/* --title "kide $version" --notes-file "$notes" --verify-tag
