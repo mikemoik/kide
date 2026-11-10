@@ -1,0 +1,37 @@
+# GitHub Release for a pushed tag v<version> (e.g. v0.1.0), created here in CI
+# with the workflow's own token: releasing needs only `git push origin <tag>`.
+# Notes: release-notes/<tag>.md at the tagged commit; missing -> the commit
+# subjects since the previous v* tag. The source tarball is GitHub's automatic
+# "Source code (tar.gz)" (offline install), nothing is built here.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create the release
+        run: |
+          tag="$GITHUB_REF_NAME"
+          notes="release-notes/$tag.md"
+          if [ ! -f "$notes" ]; then
+            prev=$(git describe --tags --abbrev=0 --match 'v*' "$tag^" 2>/dev/null || true)
+            notes=notes.md
+            {
+              echo "Changes${prev:+ since $prev}:"
+              git log --format='- %s (%h)' ${prev:+$prev..}"$tag"
+            } > "$notes"
+          fi
+          gh release create "$tag" --title "kide ${tag#v}" --notes-file "$notes" --verify-tag

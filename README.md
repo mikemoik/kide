@@ -787,6 +787,16 @@ even in CRB), so every crate the build needs is in `vendor/crates` as source.
 | tools | fzf 0.74.4, lazygit 0.65.1, yazi 26.1.22 (newest that builds with Rust 1.92; later ones need 1.95) | in progress |
 | libs | moved to the ibn-dev repo (build environment) | task 126 |
 
+## Releasing
+
+1. Write `release-notes/v<version>.md` (optional: without it the release lists
+   the commit subjects since the previous tag), commit, push `main`.
+2. `git tag -a v<version> -m "kide <version>"` and `git push origin v<version>`.
+
+The GitHub Action `.github/workflows/release.yml` then creates the release
+"kide <version>" with those notes; its *Source code (tar.gz)* is the offline
+install tarball. No GitHub login needed locally, only the push.
+
 ## Updating the pins (on a connected machine)
 
 1. Edit `manifest/` (Neovim tag, plugin commits, parser list).
