@@ -194,7 +194,10 @@ By hand (`start.sh` also adds `-e TERM -e SSH_CONNECTION`):
   `/etc/tmux.conf` (mouse on, set-clipboard on), and git reads
   `~/workspace/.container/.gitconfig` (your `[user] name`/`email`, …), if it
   exists, via an include in the image's `/etc/gitconfig`; a global config
-  (`start.sh`'s mounted `~/.gitconfig`) overrides the same keys.
+  (`start.sh`'s mounted `~/.gitconfig`) overrides the same keys. kide (nvim)
+  sources every `~/workspace/.container/nvim/*.lua` in name order after its
+  own config (all yours, the image ships none; another directory:
+  `$KIDE_NVIM_HOOKS`), e.g. the [AI chat](#ai-chat-gpnvim) endpoint.
 - `-v kide-data:/var/lib/kide`: kide's data and state survive the container;
   leave it out for a throwaway session.
 - `--userns=keep-id:uid=1001,gid=1001`: the image runs as the user `default`
@@ -486,6 +489,52 @@ build environment in one container. kide knows nothing of ibn-dev: ibn-dev's
 own shell hooks (`10-ibn-dev.sh`/`.fish` in `/workspace/.container/`) set its
 library environment, in fish as in bash.
 
+### AI chat (gp.nvim)
+
+gp.nvim talks to any OpenAI-compatible chat-completions endpoint (a local or
+on-prem LLM; no tool calling needed). It is inert until an nvim hook sets it
+up: no endpoint is built in, and every gp.nvim built-in provider (api.openai.com
+& co.), voice and image generation are off. Requests go only to the endpoint
+you configure, through `curl`. Example
+`~/workspace/.container/nvim/50-gp.lua` (the table is gp.nvim's `setup()`
+config, `:h gp.nvim`):
+
+```lua
+require("misw.ai").setup({
+  providers = {
+    site = {
+      endpoint = "http://<llm-host>:<port>/v1/chat/completions",
+      -- the key from a file (chmod 600) next to it; "" when there is no auth
+      secret = { "cat", "/workspace/.container/llm.key" },
+    },
+  },
+  default_chat_agent = "Chat",
+  default_command_agent = "Code",
+  agents = {
+    { name = "Chat", provider = "site", chat = true, command = false,
+      model = { model = "<model>", temperature = 0.2 },
+      system_prompt = "You are a C++/CMake assistant." },
+    { name = "Code", provider = "site", chat = false, command = true,
+      model = { model = "<model>", temperature = 0.1 },
+      system_prompt = "Output only code, no explanations, no markdown fences." },
+  },
+})
+```
+
+Chats are kept in `~/workspace/.container/kide/gp/chats/`. A changed hook
+takes effect at the next kide start. Keymaps (only with a hook):
+
+| Keys | Action |
+|---|---|
+| `<leader>aa` / `an` | toggle chat / new chat (visual: with the selection) |
+| `<leader>ap` (visual) | paste the selection into the chat |
+| `<leader>af` | find a chat |
+| `<leader>ar` / `ao` / `aO` | rewrite / append after / prepend before (line or selection) |
+| `<leader>ai` (visual) | implement the selection (comments → code) |
+| `<leader>a.` / `as` | next agent / stop the request |
+
+In a chat, `<C-g><C-g>` sends; `:GpRewrite <instruction>` skips the prompt.
+
 ### Terminal tools
 
 Also built from source and put on `PATH` with kide (upstream defaults; yazi
@@ -715,7 +764,7 @@ even in CRB), so every crate the build needs is in `vendor/crates` as source.
 
 - No `vim.pack`: plugins are installed by `build-ide.sh` as opt packages and
   loaded with `packadd` in the same order.
-- No claudecode.nvim (`<leader>a`), no jsonls / JSON schemas.
+- No claudecode.nvim; `<leader>a` is gp.nvim instead ([AI chat](#ai-chat-gpnvim)). No jsonls / JSON schemas.
 - blink.cmp uses its pure-Lua fuzzy matcher (the Rust one needs nightly Rust).
 - Treesitter parsers are compiled by `build-ide.sh`; nvim-treesitter never
   installs anything.
@@ -886,6 +935,7 @@ license. Generated from `VERSIONS` by `scripts/gen-inventory.py` (run by
 | plugin/flash.nvim | <https://github.com/folke/flash.nvim> | `fcea7ff88323` | Apache-2.0 |
 | plugin/friendly-snippets | <https://github.com/rafamadriz/friendly-snippets> | `6cd7280adead` | MIT |
 | plugin/gitsigns.nvim | <https://github.com/lewis6991/gitsigns.nvim> | `abf82a65f185` | MIT |
+| plugin/gp.nvim | <https://github.com/Robitx/gp.nvim> | `c37f154b9769` | MIT |
 | plugin/grug-far.nvim | <https://github.com/MagicDuck/grug-far.nvim> | `1f7a722a9b9f` | MIT |
 | plugin/lazydev.nvim | <https://github.com/folke/lazydev.nvim> | `5231c62aa83c` | Apache-2.0 |
 | plugin/lualine.nvim | <https://github.com/nvim-lualine/lualine.nvim> | `47f91c416dae` | MIT |

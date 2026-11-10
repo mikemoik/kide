@@ -5,6 +5,7 @@ ethereal.nvim	https://github.com/bjarneo/ethereal.nvim	a0ec73332e537228981b6a4f4
 flash.nvim	https://github.com/folke/flash.nvim	fcea7ff883235d9024dc41e638f164a450c14ca2
 friendly-snippets	https://github.com/rafamadriz/friendly-snippets	6cd7280adead7f586db6fccbd15d2cac7e2188b9
 gitsigns.nvim	https://github.com/lewis6991/gitsigns.nvim	abf82a65f185bd54adc0679f74b7d6e1ada690c9
+gp.nvim	https://github.com/Robitx/gp.nvim	c37f154b97690c4925fef4e35ffdbf2c844b5f4e
 grug-far.nvim	https://github.com/MagicDuck/grug-far.nvim	1f7a722a9b9f0206a345377c13e62542f484398a
 lazydev.nvim	https://github.com/folke/lazydev.nvim	5231c62aa83c2f8dc8e7ba957aa77098cda1257d
 lualine.nvim	https://github.com/nvim-lualine/lualine.nvim	47f91c416daef12db467145e16bed5bbfe00add8

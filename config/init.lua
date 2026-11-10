@@ -31,6 +31,7 @@ for _, name in ipairs({
   "grug-far.nvim",
   "persistence.nvim",
   "plenary.nvim",
+  "gp.nvim", -- inert until an nvim hook calls misw.ai.setup()
   "neo-tree.nvim",
   "yazi.nvim",
   -- code
@@ -102,4 +103,5 @@ util.later(function()
   require("misw.editor").later() -- trouble.setup() before lualine's trouble.statusline()
   require("misw.ui").later()
   require("misw.dap").setup()
+  require("misw.hooks").run() -- last: yours, /workspace/.container/nvim/*.lua
 end)
