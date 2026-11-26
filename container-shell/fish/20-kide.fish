@@ -5,6 +5,11 @@
 if test -f /opt/kide/share/kreatos-ide/fish/config.fish
     source /opt/kide/share/kreatos-ide/fish/config.fish
 end
+# TeX Live, once install-texlive.sh has installed it (host:
+# ~/workspace/opt/texlive)
+if test -d /workspace/opt/texlive/bin/x86_64-linux
+    fish_add_path -g /workspace/opt/texlive/bin/x86_64-linux
+end
 # shell history in the workspace (host: ~/workspace/.container/kide/), so it
 # survives the container without the kide-data volume. fish has no setting
 # for the history path but follows a symlink at its usual place

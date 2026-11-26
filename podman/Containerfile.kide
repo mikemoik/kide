@@ -59,14 +59,19 @@ USER root
 # C/C++ tools kide uses from RHEL (clangd/clang-format/clang-tidy, gdb,
 # lldb-dap), tmux, fd-find + ripgrep + bat from EPEL (fd: snacks file pickers;
 # rg: grepprg, snacks grep pickers; bat: syntax-highlighted cat), shadow-utils (useradd/usermod) for
-# IBNDEV_USER below.
+# IBNDEV_USER below, perl + bsdtar for install-texlive.sh (TeX Live's
+# installer and tools are perl; bsdtar unpacks its ISO without a mount).
 ARG CONF_DIR
 COPY $CONF_DIR/ubi.repo /etc/yum.repos.d/ubi.repo
 COPY $CONF_DIR/repos.sh /tmp/repos.sh
 RUN /tmp/repos.sh && dnf -y install python3 git-core file findutils diffutils shadow-utils \
-        clang-tools-extra gdb lldb tmux fd-find ripgrep bat \
+        clang-tools-extra gdb lldb tmux fd-find ripgrep bat perl bsdtar \
     && dnf clean all
 COPY --from=build /opt/kide /opt/kide
+# TeX Live is not in the image (RHEL9's is too old): install-texlive.sh, run
+# once in the container, installs the current one from its ISO in the mounted
+# workspace (/workspace/dist/texlive*.iso) into /workspace/opt/texlive.
+COPY install-texlive.sh /usr/local/bin/install-texlive.sh
 # git trusts every repo (as in ibn-dev). Your git config (user.name/email, …)
 # from the mounted workspace, if present (host: ~/workspace/.container/.gitconfig);
 # git skips a missing include file. System level: a global config (start.sh

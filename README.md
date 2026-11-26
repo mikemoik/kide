@@ -600,6 +600,48 @@ From packages, not built by kide (`install.sh` / the image install them):
 - `bat` — from EPEL; syntax-highlighted file viewer (`cat` with colors); yazi's
   search-jump preview renders through it
 
+### TeX Live (LaTeX)
+
+Not in the image: RHEL9's `texlive` packages are TeX Live 2020. In the
+container, `install-texlive.sh` installs the current TeX Live into the
+workspace, `/workspace/opt/texlive` (host: `~/workspace/opt/texlive`), once,
+after the image is built. It needs no internet, only the TeX Live ISO, which
+you provide:
+
+1. On a connected machine, download the ISO (~7 GB, always the current
+   release; `texlive<YEAR>.iso.sha512` in the same directory has the checksum):
+
+       https://mirror.ctan.org/systems/texlive/Images/texlive.iso
+
+2. Put it into the workspace as `~/workspace/dist/texlive.iso` (any
+   `texlive*.iso` there; in the container `/workspace/dist/`).
+3. In the container:
+
+       install-texlive.sh
+
+Then open a new shell: kide's fish hook puts
+`/workspace/opt/texlive/bin/x86_64-linux` on `PATH` (`pdflatex`, `lualatex`,
+`latexmk`, `tlmgr`, …). The ISO can be deleted afterwards.
+
+- Disk: the ISO is unpacked next to the install directory (bsdtar, no mount)
+  and removed at the end, so ~7 GB temporarily on top of the ISO and the
+  install (~5 GB).
+- Another source: `install-texlive.sh /path/to/texlive2026.iso`, or a
+  directory with the ISO's content (unpacked or mounted) or a mirror of
+  CTAN's `systems/texlive/tlnet`.
+- `TEXLIVE_SCHEME=medium install-texlive.sh`: a smaller set than the default
+  `full` (`small`, `basic`, `minimal`, …). `TEXLIVE_DOCS=1`: with the packages'
+  documentation (`texdoc`, ~+4 GB). `TEXLIVE_PREFIX=DIR`: another install
+  directory (then add `DIR/bin/x86_64-linux` to `PATH` yourself).
+- The install is TeX Live's "portable" kind: everything, also the font caches
+  and what would go into `~/texmf`, is inside `opt/texlive`, with no absolute
+  paths, so it survives the container and also runs on the host from
+  `~/workspace/opt/texlive/bin/x86_64-linux`.
+- Reinstall or update to a newer release: remove `~/workspace/opt/texlive`
+  and run the script with the new ISO.
+- The image has what the script needs (`perl`, `bsdtar`, both RHEL AppStream);
+  an image built before the script was added has to be rebuilt.
+
 ## Moving the repo to an on-prem GitLab
 
 The repo is plain git (no LFS, no submodules; ~120 MB packed, largest file
